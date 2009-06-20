@@ -1,0 +1,4 @@
+<span id="$id" xmlns:py="http://genshi.edgewall.org/">
+    ${children['select'].display(value, **args_for(children['select']))}
+    <span id="${children['other'].id}.container" py:attrs="args_for(children['other']).get('container_attrs')">$specify_text ${children['other'].display('', **args_for(children['other']))}</span>
+</span>

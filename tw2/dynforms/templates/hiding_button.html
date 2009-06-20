@@ -1,0 +1,7 @@
+<span xmlns="http://www.w3.org/1999/xhtml"
+       xmlns:py="http://genshi.edgewall.org/">
+   <img class="${css_class}" id="${id}" src="${url_base}/show.png"
+       py:attrs="attrs" onclick="twd_showhide(this, '$ajaxurl', '$value_sibling', '$url_base')"
+       onmouseover="twd_showhide_over(this, '$url_base')" onmouseout="twd_showhide_out(this, '$url_base')"/>
+       <input type="hidden" name="${name}" id="${id}_namer"/>
+</span>

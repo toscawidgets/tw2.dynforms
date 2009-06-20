@@ -1,0 +1,40 @@
+<form xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/"
+    id="${id}"
+    name="${name}"
+    action="${action}"
+    method="${method}"
+    class="${css_class}"
+    py:attrs="attrs" >
+
+<p>
+    <py:if test="search_cols">
+        Keyword search: ${display_child('src_text')}
+        ${display_child('src_search')}
+        <py:if test="value.get('src_text')">${display_child('src_clear')}</py:if>
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+    </py:if>
+
+    <py:for each="c in children" py:if="'cb_' in c.id">
+        ${display_child(c)} $c.label &nbsp; &nbsp; &nbsp;
+    </py:for>
+</p>
+
+<table py:attrs="table_attrs">
+    <tr>
+        <th py:for="c,l in columns" class="grid_th_$c">$l</th>
+    </tr>
+    <tr>
+        <td py:for="c,l in columns">
+            <py:if test="hasattr(children, c)">${display_child(children[c])}</py:if>
+        </td>
+    </tr>
+    <tr py:for="i,r in enumerate(data)" class="${i%2 and 'odd' or 'even'}">
+        <td py:for="c,l in columns">${getattr(r, c)}</td>
+    </tr>
+    <tr py:if="not data">
+        <td colspan="${len(columns)}" style="text-align:center" class="odd">$blank_msg</td>
+    </tr>
+</table>
+
+</form>

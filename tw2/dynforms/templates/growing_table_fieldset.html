@@ -1,0 +1,15 @@
+<div xmlns:py="http://genshi.edgewall.org/" py:strip="True">
+<table id="${id}" border="0" cellspacing="0" cellpadding="2" py:attrs="table_attrs" class="autogrow ${css_class}">
+    <tbody id="${id}_repeater">
+    <tr>
+        <?python import tw.forms as twf ?>
+        <th py:for="c in children['grow'].widget.children" py:if="not isinstance(c, twf.HiddenField)" title="$c.help_text">
+            <py:if test="dotitle">${c.label_text}</py:if>
+        </th>
+        <td><input style="display:none" type="image" id="${id}_undo" src="${undo_url}" alt="Undo" onclick="twd_grow_undo(this); return false;"/></td>
+    </tr>
+    ${children['grow'].display(value_for(children['grow']) or value, **args_for(children['grow']))}
+    </tbody>
+</table>
+<table style="display:none">${display_child('spare')}</table>
+</div>

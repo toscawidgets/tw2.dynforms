@@ -1,0 +1,18 @@
+<span xmlns:py="http://genshi.edgewall.org/">
+    <input
+        type="text"
+        id="${id}_entry"
+        value="${value and datasrc.get(value)}"
+        onkeypress="if(event.keyCode == 13) twd_ajax_onblur(this, event, '${ajaxurl}');"
+        onblur="twd_ajax_onblur(this, event, '${ajaxurl}')"
+        onfocus="twd_ajax_onfocus(this)"
+        style="text-decoration: underline"
+        class="${css_class}"/>
+    <input
+        type="hidden"
+        name="${name}"
+        id="${id}"
+        value="${value}"
+        class="ajaxlookup_hidden"
+        py:attrs="attrs"/>
+</span>
