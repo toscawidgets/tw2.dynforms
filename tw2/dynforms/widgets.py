@@ -1,14 +1,8 @@
-import tw2.core as twc, tw2.forms as twf
+import tw2.core as twc, tw2.forms as twf, datetime as dt
 
 #--
 # Miscellaneous widgets
 #--
-class CalendarDatePicker(twf.CalendarDatePicker):
-    """Calendar date picker that has an image button instead of 'Choose'."""
-    template = "genshi:tw.dynforms.templates.calendar"
-    def update_params(self, params):
-        super(CalendarDatePicker, self).update_params(params)
-        params['cal_src'] = tw.api.Link(modname=__name__, filename="static/office-calendar.png").link
 
 class LinkContainer(twc.DisplayOnlyWidget):
     """This widget provides a "View" link adjacent to any other widget required. This link is visible only when a value is selected, and allows the user to view detailed information on the current selection. The widget must be created with a single child, and the child must have its ID set to None."""
@@ -80,7 +74,7 @@ class DeleteButton(twf.ImageButton):
         'alt': 'Delete row',
         'onclick': 'twd_grow_del(this); return false;',
     }
-    src = tw.api.Link(modname=__name__, filename="static/del.png")
+    src = twc.Link(modname=__name__, filename="static/del.png")
 
 
 class StripBlanks(twc.Validator):
@@ -104,35 +98,36 @@ class StripBlanks(twc.Validator):
         return [v for v in value if self.any_content(v)]
 
 
-class GrowingGridLayout(twf.GridLayout):
-    """A grid of input widgets that can dynamically grow on the client. This is useful for allowing users to enter a list of items that can vary in length. The widgets are presented as a grid, with each field being a column. Delete and undo functionality is provided. To function correctly, the widget must appear inside a CustomisedForm."""
+class GrowingGridLayout(object): # twf.GridLayout
+    if 0:
+        """A grid of input widgets that can dynamically grow on the client. This is useful for allowing users to enter a list of items that can vary in length. The widgets are presented as a grid, with each field being a column. Delete and undo functionality is provided. To function correctly, the widget must appear inside a CustomisedForm."""
 
-    resources = [twc.JSLink(modname=__name__, filename="static/dynforms.js")]
-    validator = StripBlanks()
+        resources = [twc.JSLink(modname=__name__, filename="static/dynforms.js")]
+        validator = StripBlanks()
 
-    extra = twc.Variable(default=2) # User shouldn't modify this
+        extra = twc.Variable(default=2) # User shouldn't modify this
 
-    @classmethod
-    def post_define(cls):
-        # add del/id to child.children
-        if not hasattr(cls.child.children, 'del'):
-            cls.child.children.append(DeleteButton('del'))
-        #children.append(twf.HiddenField('id', validator=fe.validators.Int))
+        @classmethod
+        def post_define(cls):
+            # add del/id to child.children
+            if not hasattr(cls.child.children, 'del'):
+                cls.child.children.append(DeleteButton('del'))
+            #children.append(twf.HiddenField('id', validator=fe.validators.Int))
 
-    def prepare(self):
-        super(GrowingGridLayout, self).prepare()
-        self.undo_url = tw.api.Link(modname=__name__, filename="static/undo.png").link
-        # last two rows have delete hidden (and hidingbutton) and get onchange
-        for r in (self.c[-2], self.c[-1]):
-            for c in r.c:
-                c.safe_modify('attrs')
-                if c.id == 'del' or isinstance(c, HidingButton):
-                    c.attrs['style'] = 'display:none;' + c.attrs.get('style', '')
-                else:
-                    c.attrs['onchange'] = 'twd_grow_add(this);' + c.attrs.get('onchange', '')
-        # last row is hidden
-        self.c[-1].safe_modify('attrs')
-        self.c[-1].attrs['style'] = 'display:none;' + self.c[-1].attrs.get('style', '')
+        def prepare(self):
+            super(GrowingGridLayout, self).prepare()
+            self.undo_url = twc.Link(modname=__name__, filename="static/undo.png").link
+            # last two rows have delete hidden (and hidingbutton) and get onchange
+            for r in (self.c[-2], self.c[-1]):
+                for c in r.c:
+                    c.safe_modify('attrs')
+                    if c.id == 'del' or isinstance(c, HidingButton):
+                        c.attrs['style'] = 'display:none;' + c.attrs.get('style', '')
+                    else:
+                        c.attrs['onchange'] = 'twd_grow_add(this);' + c.attrs.get('onchange', '')
+            # last row is hidden
+            self.c[-1].safe_modify('attrs')
+            self.c[-1].attrs['style'] = 'display:none;' + self.c[-1].attrs.get('style', '')
 
 
 #--
@@ -167,15 +162,15 @@ class HidingContainerMixin(object):
         1 # !!!
 
     @classmethod
-    def post_define(cls):
+    def xxpost_define(cls):
         """
         Verify the mapping - check all controls exist and there are no loops
         generate hiding_root and non_hiding
         """
         cls.hiding_ctrls = set()
         parents = {}
-        id_stem_len = cls.id and len(cls.id) + 1 or 0
-        for c in cls.children_deep:
+        id_stem_len = getattr(cls, 'id', None) and len(cls.id) + 1 or 0
+        for c in []: # TBD cls.children_deep:
             if isinstance(c, HidingComponentMixin):
                 dep_ctrls = set()
                 for m in c.mapping.values():
@@ -193,10 +188,10 @@ class HidingContainerMixin(object):
                             raise twc.WidgetError('Mapping loop caused by: ' + c.id)
                     parents[d].add(c.id[id_stem_len:])
                     parents[d].update(parents.get(c.id[id_stem_len:], []))
-        self.hiding_root = [c._id for c in self.children
-            if isinstance(c, HidingComponentMixin) and not parents.has_key(c._id)]
+        cls.hiding_root = [c._id for c in cls.children
+            if issubclass(c, HidingComponentMixin) and not parents.has_key(c.id)] # TBD id_elem?
         hiding_ctrl_ids = set(x.replace('.', '_') for x in self.hiding_ctrls)
-        self.non_hiding = [(hasattr(c, 'name') and c.name or '')[name_stem_len:] for c in self.children_deep
+        cls.non_hiding = [(hasattr(c, 'name') and c.name or '')[name_stem_len:] for c in [] # cls.children_deep
                             if (c.id or '')[id_stem_len:] not in hiding_ctrl_ids]
 
 
@@ -208,13 +203,13 @@ class HidingListLayout(HidingContainerMixin, twf.ListLayout):
 
 class HidingComponentMixin(object):
     """This widget is a $$ with additional functionality to hide or show other widgets in the form, depending on the value selected. To function correctly, the widget must be used inside a suitable container, e.g. HidingTableForm, and the widget's id must not contain an underscore."""
-    javascript = [tw.api.JSLink(modname=__name__, filename='static/dynforms.js')]
+    javascript = [twc.JSLink(modname=__name__, filename='static/dynforms.js')]
 
     mapping = twc.Param('Dict that maps selection values to visible controls', request_local=False)
 
     def prepare(self):
         super(HidingComponentMixin, self).prepare()
-        mapping = tw.api.encode(self.mapping)
+        mapping = twc.encode(self.mapping)
         self.safe_modify('resources')
         # TBD: optimise dupes
         self.resources.append(twc.JSSource('twd_mapping_store["%s"] = %s;' % (self.id, mapping)))
@@ -238,3 +233,41 @@ class HidingCheckBoxList(HidingSelectionList, twf.CheckBoxList):
 
 class HidingRadioButtonList(HidingSelectionList, twf.RadioButtonList):
     __doc__ = HidingComponentMixin.__doc__.replace('$$', 'RadioButtonList')
+
+
+class CalendarDatePicker(twf.TextField):
+    """
+    A JavaScript calendar system for picking dates.
+    """
+    resources = [
+        twc.CSSLink(modname='tw2.dynforms', filename='static/calendar/calendar-system.css'),
+        twc.JSLink(modname='tw2.dynforms', filename='static/calendar/calendar.js'),
+        twc.JSLink(modname='tw2.dynforms', filename='static/calendar/calendar-setup.js'),
+    ]
+    language = twc.Param('Short country code for language to use, e.g. fr, de', default='en')
+    show_time = twc.Variable('Whether to display the time', default=False)
+    value = twc.Param('The default value is the current time', default=twc.Deferred(lambda: dt.datetime.now()))
+    validator = twc.Param('To control the date format, specify it in the validator', default=twc.DateValidator)
+    template = "genshi:tw2.dynforms.templates.calendar"
+
+    def prepare(self):
+        super(CalendarDatePicker, self).prepare()
+        a = twc.JSLink(modname='tw2.dynforms', filename='static/calendar/lang/calendar-%s.js' % self.language).req()
+        b = twc.JSFuncCall(function='Calendar.setup', args=dict(
+            inputField = self._compound_id(),
+            ifFormat = self.validator.format,
+            button = self._compound_id() + ':trigger',
+            showsTime = self.show_time,
+        )).req()
+        twc.core.request_local().setdefault('resources', set()).update(r for r in (a,b))
+        aa = twc.Link(modname='tw2.dynforms', filename='static/office-calendar.png').req()
+        aa.prepare()
+        self.cal_src = aa.link
+
+
+class CalendarDateTimePicker(CalendarDatePicker):
+    """
+    A JavaScript calendar system for picking dates and times.
+    """
+    validator = twc.DateTimeValidator
+    show_time = True
