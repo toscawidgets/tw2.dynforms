@@ -15,10 +15,11 @@ class LinkContainer(twc.DisplayOnlyWidget):
     def prepare(self):
         super(LinkContainer, self).prepare()
         self.child.safe_modify('attrs')
-        self.child.attrs['onchange'] = ('twd_link_onchange(this);' +
+        self.child.attrs['onchange'] = (('twd_link_onchange(this, "%s");' % self.link) +
                                             self.child.attrs.get('onchange', ''))
+        self.safe_modify('attrs')
+        self.attrs['id'] = self.child._compound_id() + ':view'
         if not self.value:
-            self.safe_modify('attrs')
             self.attrs['style'] = 'display:none;' + self.attrs.get('style', '')
 
 

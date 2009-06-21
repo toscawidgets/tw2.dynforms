@@ -1,82 +1,4 @@
 /**
- * Cascading
- **/
-var twd_cascade_req, twd_cascade_node, twd_cascade_cache = {};
-function twd_cascading_onchange(ctrl, ajaxurl, extra, idextra)
-{
-    if(twd_cascade_cache[ctrl.id][ctrl.value])
-        return twd_cascade_apply(ctrl, twd_cascade_cache[ctrl.id][ctrl.value]);
-    if(twd_cascade_req)
-    {
-        alert('A cascade is already in progress; please let it complete before making another.');
-        return;
-    }
-    twd_cascade_node = ctrl;
-    if(window.ActiveXObject)
-        twd_cascade_req = new ActiveXObject("Microsoft.XMLHTTP");
-    else
-        twd_cascade_req = new XMLHttpRequest();
-    twd_cascade_req.onreadystatechange = twd_cascade_response;
-    twd_cascade_req.open("POST", ajaxurl, true);
-    twd_cascade_req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded")
-    var msg = "value=" + escape(ctrl.value);
-    for(i in extra)
-        msg = msg + '&' + extra[i] + '=' + escape(twd_find_node(ctrl, extra[i]).value);
-    for(i in idextra)
-        msg = msg + '&' + idextra[i] + '=' + escape(document.getElementById(idextra[i]).value);
-    twd_cascade_req.send(msg);
-}
-
-function twd_cascade_response()
-{
-    if(twd_cascade_req.readyState != 4) return;
-    if(twd_cascade_req.status != 200)
-    {
-        twd_cascade_req = null;
-        alert('Server error processing request');
-        return;
-    }
-    var data = eval('x=' + twd_cascade_req.responseText);
-    twd_cascade_req = null;
-    twd_cascade_apply(twd_cascade_node, data);
-}
-
-function twd_cascade_apply(node, data)
-{
-    for(var n in data)
-    {
-        var x = twd_find_node(node, n);
-        if(x) 
-        {
-            if(x.className == "ajaxlookup_hidden")
-            {
-                var entry = document.getElementById(x.id + '_entry');
-                entry.value = data[n]['value'];
-                twd_set_id(entry, data[n]['id']);
-                twd_set_style(entry, 1);
-                if(x.onchange) x.onchange();
-            }
-            else if((x.tagName == "SELECT") && (data[n].constructor.toString().indexOf("Array") != -1))
-            {
-                x.options.length = 0;
-                for(var i = 0; i < data[n].length; i++)
-                {
-                    if (data[n][i].constructor.toString().indexOf("Array") != -1)
-                        x.options[i] = new Option(data[n][i][1], data[n][i][0]);
-                    else
-                        x.options[i] = new Option(data[n][i], data[n][i]);
-                }
-            }
-            else if(x.tagName == "SPAN")
-                x.innerHTML = data[n];
-            else 
-                x.value = data[n] ? data[n] : '';
-        }
-    }
-}
-
-
-/**
  * Hiding
  **/
 var twd_mapping_store = {};
@@ -180,12 +102,12 @@ function twd_showhide_ajaxreq(ctrl, ajaxurl, value_sibling)
     twd_proc_req.onreadystatechange = twd_showhide_ajaxcb;
     twd_proc_req.open("POST", ajaxurl, true);
     twd_proc_req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded")
-    value = value_sibling ? twd_find_node(ctrl, value_sibling).value : '';    
+    value = value_sibling ? twd_find_node(ctrl, value_sibling).value : '';
     twd_proc_req.send("value="+value);
 }
 
 function twd_showhide_ajaxcb()
-{    
+{
     if(twd_proc_req.readyState != 4) return;
     if(twd_proc_req.status != 200)
     {
@@ -198,7 +120,7 @@ function twd_showhide_ajaxcb()
     twd_popup_elem.appendChild(document.createElement('TD'));
     twd_popup_elem.firstChild.colSpan = 10; // This should be wide enough to cover all tables in practice
     twd_popup_elem.firstChild.innerHTML = twd_proc_req.responseText;
-       
+
     var tr_node = twd_popup_node;
     while(tr_node.tagName != 'TR')
         tr_node = tr_node.parentNode;
@@ -209,11 +131,11 @@ function twd_showhide_ajaxcb()
     var id_prefix = namer.id.substr(0, namer.id.lastIndexOf("_") + 1);
     var x = twd_get_all_nodes(twd_popup_elem)
     for(var i = 1; i < x.length; i++) // start at 1 to avoid rewriting the root node
-    {        
+    {
         if(x[i].id) x[i].id = id_prefix + x[i].id;
         if(x[i].name) x[i].name = name_prefix + x[i].name;
     }
-    
+
     twd_popup_node.src = twd_url_base + '/hide.png';
     twd_proc_req = null;
 }
@@ -237,7 +159,7 @@ function twd_grow_add(ctrl, desc)
         var autogrow = 0;
         var idprefix = ctrl.id.substring(0, ctrl.id.lastIndexOf('_add'));
         var nameprefix = ctrl.name.substring(0, ctrl.name.lastIndexOf('add'));
-    }    
+    }
     var node = document.getElementById(idprefix + '_repeater').firstChild;
     var lastnode = null;
     while(node)
@@ -251,7 +173,7 @@ function twd_grow_add(ctrl, desc)
     // Only autogrow if we are the last row
     if(autogrow && parseInt(ctrl.id.substr(idprefix.length + 6)) != number-1)
         return;
-        
+
     // Clone the spare element; update id and name attributes; include in page
     var old_elem = document.getElementById(idprefix + '_spare');
     var elem = old_elem.cloneNode(true);
@@ -284,13 +206,13 @@ function twd_grow_add(ctrl, desc)
         for(var i = 0; i < x.length; i++)
             if(x[i].tagName == 'IMG' && x[i].src.indexOf('/show.png')) x[i].style.display = '';
     }
-    
+
     // Clone any stored mappings for hiding fields
     for(id in twd_mapping_store)
         if(id.indexOf(idprefix + '_spare') == 0)
             twd_mapping_store[new_id_prefix + id.substr(id_stemlen)] = twd_mapping_store[id];
-    
-    // Setup calendars        
+
+    // Setup calendars
     for(var i in calendars)
         Calendar.setup({"ifFormat": "%d\/%m\/%Y", "button": calendars[i]+"_trigger", "showsTime": false, "inputField": calendars[i]});
 }
@@ -305,7 +227,7 @@ function twd_grow_del(ctrl)
     nodes = twd_get_all_nodes(document.getElementById(rowid));
     for(var i = 0; i < nodes.length; i++)
         if(nodes[i].tagName == 'IMG' && nodes[i].src.indexOf('/hide.png') > -1)
-            nodes[i].onclick();    
+            nodes[i].onclick();
     document.getElementById(rowid).style.display = 'none';
     document.getElementById(idprefix + '_undo').style.display = '';
 }
@@ -320,18 +242,11 @@ function twd_grow_undo(ctrl)
 /**
  * Link container
  **/
-function twd_link_onchange(ctrl)
+function twd_link_onchange(ctrl, link)
 {
-    var visible = ctrl.style.display != 'none';
-    var view = document.getElementById(ctrl.id + '_view')
-    view.style.display = visible && ctrl.value ? '' : 'none';
-}
-
-function twd_link_view(ctrl, link, popup_options)
-{
-    var value = document.getElementById(ctrl.id.substr(0, ctrl.id.length-5)).value;
-    window.open(link.replace(/\$/, value), '_blank', popup_options);
-    return false;
+    var view = document.getElementById(ctrl.id + ':view')
+    view.style.display = ctrl.value ? '' : 'none';
+    view.href = link.replace(/\$/, ctrl.value)
 }
 
 /**
@@ -369,7 +284,7 @@ function twd_find_node(node, suffix)
     return document.getElementById(prefix + suffix);
 }
 
-function twd_no_multi_submit(ctrl) 
+function twd_no_multi_submit(ctrl)
 {
     ctrl.disabled = 1;
     var form = twd_find_node(ctrl, '');
@@ -385,6 +300,6 @@ function twd_find_stem(ctrlid)
     var stem = ctrlid.substr(0, pos);
     if(document.getElementById(stem))
         return stem;
-    else    
+    else
         return twd_find_stem(stem);
 }

@@ -10,6 +10,8 @@ class TestPage(twf.FormPage):
         class child(twf.TableLayout):
             id = 'xx'
             a = twd.CalendarDatePicker()
+            b = twf.CheckBox(validator=twc.Required)
+            c = twd.LinkContainer(link='x$', child=twf.SingleSelectField(options=['']+opts))
 
 def app(environ, start_response):
     req = wo.Request(environ)
