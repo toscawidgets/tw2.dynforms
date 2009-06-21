@@ -139,63 +139,39 @@ class GrowingGridLayout(twf.GridLayout):
 class HidingContainerMixin(object):
     """Mixin to add hiding functionality to a container widget. The developer can use multiple inheritence to combine this class with a container widget, e.g. ListFieldSet. For this to work correctly, the container must make use of the container_attrs parameter on child widgets."""
 
-    def prepare(self):
-        super(HidingContainerMixin, self).prepare()
-
-        # generate children_deep
-        # map hiding_root_ids to hiding_root, similarly hiding_ctrls
-
-        visible = self.process_hiding(self.hiding_root, set(self.hiding_root))
-        for w in self.hiding_ctrls:
-            if w not in visible:
-                w.safe_modify('container_attrs')
-                w.container_attrs['style'] = 'display:none;' + w.container_attrs.get('style', '')
-
-    def process_hiding(self, widgets, visible):
-        for w in widgets:
-            if isinstance(w, HidingComponentMixin):
-                val = w.value
-                for v,cs in w.mapping.iteritems():
-                    if w in visible and ((v == val) or (isinstance(val, list) and (v in val))):
-                        visible.update(cs)
-                    self.process_hiding(cs, visible)
-        return visible
-
-    def _validate(self, value):
-        1 # !!!
-
     @classmethod
-    def xxpost_define(cls):
+    def post_define(cls):
         """
-        Verify the mapping - check all controls exist and there are no loops
-        generate hiding_root and non_hiding
+        Verify the mapping - check all controls exist and generate cls.hiding_ctrls
         """
         cls.hiding_ctrls = set()
-        parents = {}
-        id_stem_len = getattr(cls, 'id', None) and len(cls.id) + 1 or 0
-        for c in []: # TBD cls.children_deep:
+        seen = set()
+        for c in getattr(cls, 'children', []):
+            seen.add(c.id)
             if isinstance(c, HidingComponentMixin):
                 dep_ctrls = set()
                 for m in c.mapping.values():
                     dep_ctrls.update(m)
                 cls.hiding_ctrls.update(dep_ctrls)
                 for d in dep_ctrls:
-                    cur = self
-                    for el in d.split('.'):
-                        if not cur.children._widget_dct.has_key(el):
-                            raise twc.WidgetError('Widget referenced in mapping does not exist: ' + d)
-                        cur = cur.children[el]
-                    parents.setdefault(d, set())
-                    for dd in [d] + list(parents[d]):
-                        if dd in parents.get(c._id, []):
-                            raise twc.WidgetError('Mapping loop caused by: ' + c.id)
-                    parents[d].add(c.id[id_stem_len:])
-                    parents[d].update(parents.get(c.id[id_stem_len:], []))
-        cls.hiding_root = [c._id for c in cls.children
-            if issubclass(c, HidingComponentMixin) and not parents.has_key(c.id)]
-        hiding_ctrl_ids = set(x.replace('.', '_') for x in self.hiding_ctrls)
-        cls.non_hiding = [(hasattr(c, 'name') and c.name or '')[name_stem_len:] for c in [] # cls.children_deep
-                            if (c.id or '')[id_stem_len:] not in hiding_ctrl_ids]
+                    if not hasattr(cls.children, d):
+                        raise twc.ParameterError('Widget referenced in mapping does not exist: ' + d)
+                    if d in seen:
+                        raise twc.ParameterError('Widget mapping references a preceding widget: ' + d)
+
+    def prepare(self):
+        super(HidingContainerMixin, self).prepare()
+        show = set()
+        for c in self.children:
+            if isinstance(c, HidingComponentMixin):
+                show.update(c.mapping.get(c.value, []))
+            if c in self.hiding_ctrls and c.id not in show:
+                c.safe_modify('container_attrs')
+                c.container_attrs['style'] = 'display:none;' + w.container_attrs.get('style', '')
+
+    def _validate(self, value):
+        1 # TBD
+
 
 
 class HidingTableLayout(HidingContainerMixin, twf.TableLayout):
@@ -212,10 +188,11 @@ class HidingComponentMixin(object):
 
     def prepare(self):
         super(HidingComponentMixin, self).prepare()
-        mapping = twc.encode(self.mapping)
+        import simplejson # TBD
+        mapping = simplejson.encoder.JSONEncoder().encode(self.mapping)
         self.safe_modify('resources')
         # TBD: optimise dupes
-        self.resources.append(twc.JSSource('twd_mapping_store["%s"] = %s;' % (self.id, mapping)))
+        self.resources.append(twc.JSSource(src='twd_mapping_store["%s"] = %s;' % (self.compound_id, mapping)).req())
 
 class HidingSingleSelectField(HidingComponentMixin, twf.SingleSelectField):
     __doc__ = HidingComponentMixin.__doc__.replace('$$', 'SingleSelectField')

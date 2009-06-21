@@ -4,10 +4,9 @@
 var twd_mapping_store = {};
 function twd_hiding_onchange(ctrl)
 {
-    var cont = document.getElementById(ctrl.id+'.container');
-    var is_vis = cont ? cont.style.display != 'none' : 1;
+    var is_vis = document.getElementById(ctrl.id+':container').style.display != 'none';
     var mapping = twd_mapping_store[ctrl.id];
-    var stem = twd_find_stem(ctrl.id) + '_';
+    var parent_id = ctrl.id.substring(0, ctrl.id.lastIndexOf(':')+1);
 
     // Determine the selected value(s)
     var values = [];
@@ -42,11 +41,11 @@ function twd_hiding_onchange(ctrl)
         for(b in mapping[a])
         {
             var display = visible[mapping[a][b]] ? '' : 'none';
-            var x = document.getElementById(stem+mapping[a][b]+'.container');
+            var x = document.getElementById(parent_id+mapping[a][b]+':container');
             if(x.style.display != display)
             {
                 x.style.display = display;
-                var x = document.getElementById(stem+mapping[a][b]);
+                var x = document.getElementById(parent_id+mapping[a][b]);
                 if(x && x.id && twd_mapping_store[x.id])
                     twd_hiding_onchange(x);
             }
@@ -148,7 +147,7 @@ function twd_suppress_enter(evt) {
 
 function twd_find_node(node, suffix)
 {
-    var prefix = node.id.substr(0, node.id.lastIndexOf("_") + (suffix ? 1 : 0));
+    var prefix = node.id.substr(0, node.id.lastIndexOf(":") + (suffix ? 1 : 0));
     return document.getElementById(prefix + suffix);
 }
 
@@ -159,15 +158,4 @@ function twd_no_multi_submit(ctrl)
     if(form.onsubmit) form.onsubmit();
     form.submit();
     return false;
-}
-
-function twd_find_stem(ctrlid)
-{
-    var pos = ctrlid.lastIndexOf('_');
-    if(pos == -1) return '';
-    var stem = ctrlid.substr(0, pos);
-    if(document.getElementById(stem))
-        return stem;
-    else
-        return twd_find_stem(stem);
 }

@@ -16,6 +16,10 @@ class TestPage(twf.FormPage):
                 value = [{'a':'aaa', 'b':'bbb'}]
                 a = twf.TextField()
                 b = twf.TextField()
+            class e(twd.HidingTableLayout):
+                a = twd.HidingSingleSelectField(options=opts, mapping={'Red':['b'], 'Yellow':['c']})
+                b = twf.TextField()
+                c = twf.TextField()
 
 
 def app(environ, start_response):
