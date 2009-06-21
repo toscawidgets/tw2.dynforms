@@ -18,7 +18,7 @@ class TestPage(twf.FormPage):
             #    b = twf.TextField()
             class e(twd.HidingTableLayout):
                 a = twd.HidingSingleSelectField(options=['']+opts, mapping={'Red':['b'], 'Yellow':['c']})
-                b = twf.TextField()
+                b = twf.TextField(validator=twc.Required)
                 c = twf.TextField()
 
 

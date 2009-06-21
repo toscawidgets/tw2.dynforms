@@ -168,8 +168,36 @@ class HidingContainerMixin(object):
                 c.safe_modify('container_attrs')
                 c.container_attrs['style'] = 'display:none;' + c.container_attrs.get('style', '')
 
+    @twc.validation.catch_errors
     def _validate(self, value):
-        return super(HidingContainerMixin, self)._validate(value)
+        self._validated = True
+        value = value or {}
+        if not isinstance(value, dict):
+            raise vd.ValidationError('corrupt', self.validator)
+        self.value = value
+        any_errors = False
+        data = {}
+        show = set()
+        for c in self.children:
+            if c.id in self.hiding_ctrls and c.id not in show:
+                data[c.id] = None
+            else:
+                try:
+                    if c._sub_compound:
+                        data.update(c._validate(value))
+                    else:
+                        data[c.id] = c._validate(value.get(c.id))
+                        if isinstance(c, HidingComponentMixin):
+                            show.update(c.mapping.get(data[c.id], []))
+                except twc.ValidationError:
+                    data[c.id] = twc.Invalid
+                    any_errors = True
+        if self.validator:
+            data = self.validator.to_python(data)
+            self.validator.validate_python(data)
+        if any_errors:
+            raise twc.ValidationError('childerror', self.validator)
+        return data
 
 
 class HidingTableLayout(HidingContainerMixin, twf.TableLayout):
