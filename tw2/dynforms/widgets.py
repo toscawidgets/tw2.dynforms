@@ -97,7 +97,6 @@ class StripBlanks(twc.Validator):
             return bool(val)
 
     def to_python(self, value):
-        super(StripBlanks, self).to_python(value)
         return [v for v in value if self.any_content(v)]
 
 
@@ -148,7 +147,7 @@ class HidingContainerMixin(object):
         seen = set()
         for c in getattr(cls, 'children', []):
             seen.add(c.id)
-            if isinstance(c, HidingComponentMixin):
+            if issubclass(c, HidingComponentMixin):
                 dep_ctrls = set()
                 for m in c.mapping.values():
                     dep_ctrls.update(m)
@@ -165,13 +164,12 @@ class HidingContainerMixin(object):
         for c in self.children:
             if isinstance(c, HidingComponentMixin):
                 show.update(c.mapping.get(c.value, []))
-            if c in self.hiding_ctrls and c.id not in show:
+            if c.id in self.hiding_ctrls and c.id not in show:
                 c.safe_modify('container_attrs')
-                c.container_attrs['style'] = 'display:none;' + w.container_attrs.get('style', '')
+                c.container_attrs['style'] = 'display:none;' + c.container_attrs.get('style', '')
 
     def _validate(self, value):
-        1 # TBD
-
+        return super(HidingContainerMixin, self)._validate(value)
 
 
 class HidingTableLayout(HidingContainerMixin, twf.TableLayout):
