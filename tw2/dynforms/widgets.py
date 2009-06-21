@@ -18,7 +18,7 @@ class LinkContainer(twc.DisplayOnlyWidget):
         self.child.attrs['onchange'] = (('twd_link_onchange(this, "%s");' % self.link) +
                                             self.child.attrs.get('onchange', ''))
         self.safe_modify('attrs')
-        self.attrs['id'] = self.child._compound_id() + ':view'
+        self.attrs['id'] = self.child.compound_id + ':view'
         if not self.value:
             self.attrs['style'] = 'display:none;' + self.attrs.get('style', '')
 
@@ -190,7 +190,7 @@ class HidingContainerMixin(object):
                     parents[d].add(c.id[id_stem_len:])
                     parents[d].update(parents.get(c.id[id_stem_len:], []))
         cls.hiding_root = [c._id for c in cls.children
-            if issubclass(c, HidingComponentMixin) and not parents.has_key(c.id)] # TBD id_elem?
+            if issubclass(c, HidingComponentMixin) and not parents.has_key(c.id)]
         hiding_ctrl_ids = set(x.replace('.', '_') for x in self.hiding_ctrls)
         cls.non_hiding = [(hasattr(c, 'name') and c.name or '')[name_stem_len:] for c in [] # cls.children_deep
                             if (c.id or '')[id_stem_len:] not in hiding_ctrl_ids]
@@ -255,9 +255,9 @@ class CalendarDatePicker(twf.TextField):
         super(CalendarDatePicker, self).prepare()
         a = twc.JSLink(modname='tw2.dynforms', filename='static/calendar/lang/calendar-%s.js' % self.language).req()
         b = twc.JSFuncCall(function='Calendar.setup', args=dict(
-            inputField = self._compound_id(),
+            inputField = self.compound_id,
             ifFormat = self.validator.format,
-            button = self._compound_id() + ':trigger',
+            button = self.compound_id + ':trigger',
             showsTime = self.show_time,
         )).req()
         twc.core.request_local().setdefault('resources', set()).update(r for r in (a,b))
