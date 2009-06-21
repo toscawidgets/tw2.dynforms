@@ -16,7 +16,7 @@ function twd_hiding_onchange(ctrl)
     else
         for(var i=0;; i++)
         {
-            var cb = document.getElementById(ctrl.id+"_"+i);
+            var cb = document.getElementById(ctrl.id+":"+i);
             if(!cb) break;
             if(cb.checked)
                 values[values.length] = cb.value;
@@ -59,184 +59,52 @@ function twd_hiding_listitem_onchange(ctrl)
             ctrl.id.substr(0, ctrl.id.lastIndexOf('_'))));
 }
 
-function twd_showhide(ctrl, ajaxurl, value_sibling, url_base)
-{
-    var show = ctrl.src.indexOf('/show') > -1;
-    var over = ctrl.src.indexOf('-hover.png') > -1;
-    for(var i = 1; 1; i++)
-    {
-        var node = document.getElementById(ctrl.id + '_' + i);
-        if(!node) break;
-        node.style.display = show ? '' : 'none';
-    }
-    if(i == 1 && show && ajaxurl)
-    {
-        twd_url_base = url_base;
-        twd_showhide_ajaxreq(ctrl, ajaxurl, value_sibling);
-    }
-    ctrl.src = url_base + (show ? '/hide' : '/show') + (over ? '-hover.png' : '.png');
-}
-
-function twd_showhide_over(ctrl, url_base)
-{
-    ctrl.src = url_base + (ctrl.src.indexOf('/show') > -1? '/show-hover.png' : '/hide-hover.png');
-}
-function twd_showhide_out(ctrl, url_base)
-{
-    ctrl.src = url_base + (ctrl.src.indexOf('/show') > -1? '/show.png' : '/hide.png');
-}
-
-var twd_proc_req = null;
-function twd_showhide_ajaxreq(ctrl, ajaxurl, value_sibling)
-{
-    if(twd_proc_req)
-    {
-        alert('A server request is already in progress; please let it complete before making another.');
-        return;
-    }
-    twd_popup_node = ctrl;
-    if(window.ActiveXObject)
-        twd_proc_req = new ActiveXObject("Microsoft.XMLHTTP");
-    else
-        twd_proc_req = new XMLHttpRequest();
-    twd_proc_req.onreadystatechange = twd_showhide_ajaxcb;
-    twd_proc_req.open("POST", ajaxurl, true);
-    twd_proc_req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded")
-    value = value_sibling ? twd_find_node(ctrl, value_sibling).value : '';
-    twd_proc_req.send("value="+value);
-}
-
-function twd_showhide_ajaxcb()
-{
-    if(twd_proc_req.readyState != 4) return;
-    if(twd_proc_req.status != 200)
-    {
-        twd_proc_req = null;
-        alert('Server error processing request');
-        return;
-    }
-    twd_popup_elem = document.createElement('TR');
-    twd_popup_elem.id = twd_popup_node.id + '_1';
-    twd_popup_elem.appendChild(document.createElement('TD'));
-    twd_popup_elem.firstChild.colSpan = 10; // This should be wide enough to cover all tables in practice
-    twd_popup_elem.firstChild.innerHTML = twd_proc_req.responseText;
-
-    var tr_node = twd_popup_node;
-    while(tr_node.tagName != 'TR')
-        tr_node = tr_node.parentNode;
-    tr_node.parentNode.insertBefore(twd_popup_elem, tr_node.nextSibling);
-
-    var namer = document.getElementById(twd_popup_node.id + '_namer');
-    var name_prefix = namer.name.substr(0, namer.name.lastIndexOf(".") + 1);
-    var id_prefix = namer.id.substr(0, namer.id.lastIndexOf("_") + 1);
-    var x = twd_get_all_nodes(twd_popup_elem)
-    for(var i = 1; i < x.length; i++) // start at 1 to avoid rewriting the root node
-    {
-        if(x[i].id) x[i].id = id_prefix + x[i].id;
-        if(x[i].name) x[i].name = name_prefix + x[i].name;
-    }
-
-    twd_popup_node.src = twd_url_base + '/hide.png';
-    twd_proc_req = null;
-}
 
 /***
  * Growing
  **/
-function twd_grow_add(ctrl, desc)
+function twd_grow_add(ctrl)
 {
-    // Find the id/name prefixes, and the next number in sequence
-    if(ctrl.id.indexOf('_grow-') > -1)
-    {
-        // autogrow
-        var autogrow = 1;
-        var idprefix = ctrl.id.substring(0, ctrl.id.lastIndexOf('_grow-'));
-        var nameprefix = ctrl.name.substring(0, ctrl.name.lastIndexOf('grow-'));
-    }
-    else
-    {
-        // button grow
-        var autogrow = 0;
-        var idprefix = ctrl.id.substring(0, ctrl.id.lastIndexOf('_add'));
-        var nameprefix = ctrl.name.substring(0, ctrl.name.lastIndexOf('add'));
-    }
-    var node = document.getElementById(idprefix + '_repeater').firstChild;
-    var lastnode = null;
-    while(node)
-    {
-        if(node.id && node.id.indexOf(idprefix + '_grow-') == 0)
-            lastnode = node;
-        node = node.nextSibling;
-    }
-    var number = lastnode ? parseInt(lastnode.id.substr(idprefix.length + 6)) + 1 : 0;
-
-    // Only autogrow if we are the last row
-    if(autogrow && parseInt(ctrl.id.substr(idprefix.length + 6)) != number-1)
+    var parent_id = ctrl.id.substring(0, ctrl.id.lastIndexOf(':'));
+    var id_prefix = parent_id.substring(0, parent_id.lastIndexOf(':'));
+    var next_num;
+    for(next_num = 0; document.getElementById(id_prefix + ':' + next_num); next_num++) {}
+    var this_num = parseInt(parent_id.substr(parent_id.lastIndexOf(':')+1));
+    if(this_num != next_num - 2)
         return;
+    var node = document.getElementById(id_prefix + ':0').cloneNode(true);
 
-    // Clone the spare element; update id and name attributes; include in page
-    var old_elem = document.getElementById(idprefix + '_spare');
-    var elem = old_elem.cloneNode(true);
-    var id_stemlen = idprefix.length + 6;
-    var name_stemlen = nameprefix.length + 5;
-    var new_name_prefix = nameprefix + 'grow-' + number;
-    var new_id_prefix = idprefix + '_grow-' + number;
-    var x = twd_get_all_nodes(elem)
-    var calendars = [];
+    var stemlen = id_prefix.length + 2;
+    var new_prefix = id_prefix + ':' + next_num;
+    var x = twd_get_all_nodes(node)
     for(var i = 0; i < x.length; i++)
     {
-        if(x[i].name) x[i].name = new_name_prefix + x[i].name.substr(name_stemlen);
-        if(x[i].id)
-        {
-            x[i].id = new_id_prefix + x[i].id.substr(id_stemlen);
-            if(x[i].id.substr(x[i].id.length - 8) == '_trigger')
-                calendars[calendars.length] = x[i].id.substr(0, x[i].id.length - 8);
-        }
-        if(x[i].tagName == 'LEGEND') x[i].innerHTML = x[i].innerHTML.replace('$$', number+1);
+        if(x[i].name) x[i].name = new_prefix + x[i].name.substr(stemlen);
+        if(x[i].id) x[i].id = new_prefix + x[i].id.substr(stemlen);
     }
-    document.getElementById(idprefix + '_repeater').insertBefore(elem,
-            document.getElementById(idprefix + '_sparecont'));
+    var last_node = document.getElementById(id_prefix + ':' + (next_num - 1));
+    last_node.appendSibling(node);
 
-    // Make the delete button visible, and any HidingButton widgets
-    if(autogrow)
-    {
-        var del = document.getElementById(idprefix + '_grow-' + (number-1) + '_del');
-        if(del) del.style.display = '';
-        var x = twd_get_all_nodes(document.getElementById(idprefix + '_grow-' + (number-1)));
-        for(var i = 0; i < x.length; i++)
-            if(x[i].tagName == 'IMG' && x[i].src.indexOf('/show.png')) x[i].style.display = '';
-    }
-
-    // Clone any stored mappings for hiding fields
-    for(id in twd_mapping_store)
-        if(id.indexOf(idprefix + '_spare') == 0)
-            twd_mapping_store[new_id_prefix + id.substr(id_stemlen)] = twd_mapping_store[id];
-
-    // Setup calendars
-    for(var i in calendars)
-        Calendar.setup({"ifFormat": "%d\/%m\/%Y", "button": calendars[i]+"_trigger", "showsTime": false, "inputField": calendars[i]});
+    var del = document.getElementById(id_prefix + ':_del');
+    if(del) del.style.display = '';
 }
 
 var twd_grow_undo_data = {};
 function twd_grow_del(ctrl)
 {
-    var idprefix = ctrl.id.substring(0, ctrl.id.lastIndexOf('_grow-'));
-    var rowid = ctrl.id.substring(0, ctrl.id.indexOf('_', idprefix.length+6));
-    if(!twd_grow_undo_data[idprefix]) twd_grow_undo_data[idprefix] = [];
-    twd_grow_undo_data[idprefix].push(rowid);
-    nodes = twd_get_all_nodes(document.getElementById(rowid));
-    for(var i = 0; i < nodes.length; i++)
-        if(nodes[i].tagName == 'IMG' && nodes[i].src.indexOf('/hide.png') > -1)
-            nodes[i].onclick();
-    document.getElementById(rowid).style.display = 'none';
-    document.getElementById(idprefix + '_undo').style.display = '';
+    var parent_id = ctrl.id.substring(0, ctrl.id.lastIndexOf(':'));
+    var id_prefix = parent_id.substring(0, parent_id.lastIndexOf(':'));
+    if(!twd_grow_undo_data[id_prefix]) twd_grow_undo_data[id_prefix] = [];
+    twd_grow_undo_data[id_prefix].push(parent_id);
+    document.getElementById(parent_id).style.display = 'none';
+    document.getElementById(id_prefix + ':undo').style.display = '';
 }
 
 function twd_grow_undo(ctrl)
 {
-    var idprefix = ctrl.id.substring(0, ctrl.id.length-5);
-    document.getElementById(twd_grow_undo_data[idprefix].pop()).style.display = '';
-    if(!twd_grow_undo_data[idprefix].length) ctrl.style.display = 'none';
+    var id_prefix = ctrl.id.substring(0, ctrl.id.lastIndexOf(':'));
+    document.getElementById(twd_grow_undo_data[id_prefix].pop()).style.display = '';
+    if(!twd_grow_undo_data[id_prefix].length) ctrl.style.display = 'none';
 }
 
 /**

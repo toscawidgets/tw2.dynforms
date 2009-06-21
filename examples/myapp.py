@@ -12,6 +12,11 @@ class TestPage(twf.FormPage):
             a = twd.CalendarDatePicker()
             b = twf.CheckBox(validator=twc.Required)
             c = twd.LinkContainer(link='x$', child=twf.SingleSelectField(options=['']+opts))
+            class d(twd.GrowingGridLayout):
+                value = [{'a':'aaa', 'b':'bbb'}]
+                a = twf.TextField()
+                b = twf.TextField()
+
 
 def app(environ, start_response):
     req = wo.Request(environ)

@@ -75,7 +75,8 @@ class DeleteButton(twf.ImageButton):
         'alt': 'Delete row',
         'onclick': 'twd_grow_del(this); return false;',
     }
-    src = twc.Link(modname=__name__, filename="static/del.png")
+    modname = __name__
+    filename = 'static/del.png'
 
 
 class StripBlanks(twc.Validator):
@@ -96,40 +97,41 @@ class StripBlanks(twc.Validator):
             return bool(val)
 
     def to_python(self, value):
+        super(StripBlanks, self).to_python(value)
         return [v for v in value if self.any_content(v)]
 
 
-class GrowingGridLayout(object): # twf.GridLayout
-    if 0:
-        """A grid of input widgets that can dynamically grow on the client. This is useful for allowing users to enter a list of items that can vary in length. The widgets are presented as a grid, with each field being a column. Delete and undo functionality is provided. To function correctly, the widget must appear inside a CustomisedForm."""
+class GrowingGridLayout(twf.GridLayout):
+    """A GridLayout that can dynamically grow on the client. This is useful for allowing users to enter a list of items that can vary in length. The widgets are presented as a grid, with each field being a column. Delete and undo functionality is provided. To function correctly, the widget must appear inside a CustomisedForm."""
 
-        resources = [twc.JSLink(modname=__name__, filename="static/dynforms.js")]
-        validator = StripBlanks()
+    resources = [twc.JSLink(modname=__name__, filename="static/dynforms.js")]
+    validator = StripBlanks()
+    extra_reps = twc.Variable(default=2) # User shouldn't modify this
+    template = 'genshi:tw2.dynforms.templates.growing_grid_layout'
 
-        extra = twc.Variable(default=2) # User shouldn't modify this
+    @classmethod
+    def post_define(cls):
+        if hasattr(cls.child, 'children'):
+            if not hasattr(cls.child.children, 'del'): # TBD: 'del' in ...
+                cls.child = cls.child(children = list(cls.child.children) + [DeleteButton(id='del', label='')])
+        #children.append(twf.HiddenField('id', validator=fe.validators.Int))
 
-        @classmethod
-        def post_define(cls):
-            # add del/id to child.children
-            if not hasattr(cls.child.children, 'del'):
-                cls.child.children.append(DeleteButton('del'))
-            #children.append(twf.HiddenField('id', validator=fe.validators.Int))
-
-        def prepare(self):
-            super(GrowingGridLayout, self).prepare()
-            self.undo_url = twc.Link(modname=__name__, filename="static/undo.png").link
-            # last two rows have delete hidden (and hidingbutton) and get onchange
-            for r in (self.c[-2], self.c[-1]):
-                for c in r.c:
-                    c.safe_modify('attrs')
-                    if c.id == 'del' or isinstance(c, HidingButton):
-                        c.attrs['style'] = 'display:none;' + c.attrs.get('style', '')
-                    else:
-                        c.attrs['onchange'] = 'twd_grow_add(this);' + c.attrs.get('onchange', '')
-            # last row is hidden
-            self.c[-1].safe_modify('attrs')
-            self.c[-1].attrs['style'] = 'display:none;' + self.c[-1].attrs.get('style', '')
-
+    def prepare(self):
+        super(GrowingGridLayout, self).prepare()
+        aa = twc.Link(modname=__name__, filename="static/undo.png").req()
+        aa.prepare()
+        self.undo_url = aa.link
+        # last two rows have delete hidden (and hidingbutton) and get onchange
+        for r in (self.children[self.repetitions-2], self.children[self.repetitions-1]):
+            for c in r.children:
+                c.safe_modify('attrs')
+                if c.id == 'del':
+                    c.attrs['style'] = 'display:none;' + c.attrs.get('style', '')
+                c.attrs['onchange'] = 'twd_grow_add(this);' + c.attrs.get('onchange', '')
+        # last row is hidden
+        last_row = self.children[self.repetitions-1]
+        last_row.safe_modify('attrs')
+        last_row.attrs['style'] = 'display:none;' + last_row.attrs.get('style', '')
 
 #--
 # Hiding forms
@@ -253,14 +255,16 @@ class CalendarDatePicker(twf.TextField):
 
     def prepare(self):
         super(CalendarDatePicker, self).prepare()
-        a = twc.JSLink(modname='tw2.dynforms', filename='static/calendar/lang/calendar-%s.js' % self.language).req()
-        b = twc.JSFuncCall(function='Calendar.setup', args=dict(
-            inputField = self.compound_id,
-            ifFormat = self.validator.format,
-            button = self.compound_id + ':trigger',
-            showsTime = self.show_time,
-        )).req()
-        twc.core.request_local().setdefault('resources', set()).update(r for r in (a,b))
+        self.safe_modify('resources')
+        self.resources.extend([
+            twc.JSLink(modname='tw2.dynforms', filename='static/calendar/lang/calendar-%s.js' % self.language).req(),
+            twc.JSFuncCall(function='Calendar.setup', args=dict(
+                inputField = self.compound_id,
+                ifFormat = self.validator.format,
+                button = self.compound_id + ':trigger',
+                showsTime = self.show_time
+            )).req(),
+        ])
         aa = twc.Link(modname='tw2.dynforms', filename='static/office-calendar.png').req()
         aa.prepare()
         self.cal_src = aa.link
