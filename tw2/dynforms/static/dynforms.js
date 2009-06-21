@@ -2,6 +2,11 @@
  * Hiding
  **/
 var twd_mapping_store = {};
+function twd_hiding_init(ctrl_id, mapping)
+{
+    twd_mapping_store[ctrl_id] = mapping;
+}
+
 function twd_hiding_onchange(ctrl)
 {
     var is_vis = document.getElementById(ctrl.id+':container').style.display != 'none';

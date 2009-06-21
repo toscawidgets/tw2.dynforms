@@ -214,11 +214,9 @@ class HidingComponentMixin(object):
 
     def prepare(self):
         super(HidingComponentMixin, self).prepare()
-        import simplejson # TBD
-        mapping = simplejson.encoder.JSONEncoder().encode(self.mapping)
         self.safe_modify('resources')
-        # TBD: optimise dupes
-        self.resources.append(twc.JSSource(src='twd_mapping_store["%s"] = %s;' % (self.compound_id, mapping)).req())
+        self.resources.append(
+            twc.JSFuncCall(function='twd_hiding_init', args=(self.compound_id, self.mapping)).req())
 
 class HidingSingleSelectField(HidingComponentMixin, twf.SingleSelectField):
     __doc__ = HidingComponentMixin.__doc__.replace('$$', 'SingleSelectField')
@@ -261,12 +259,12 @@ class CalendarDatePicker(twf.TextField):
         self.safe_modify('resources')
         self.resources.extend([
             twc.JSLink(modname='tw2.dynforms', filename='static/calendar/lang/calendar-%s.js' % self.language).req(),
-            twc.JSFuncCall(function='Calendar.setup', args=dict(
+            twc.JSFuncCall(function='Calendar.setup', args=[dict(
                 inputField = self.compound_id,
                 ifFormat = self.validator.format,
                 button = self.compound_id + ':trigger',
                 showsTime = self.show_time
-            )).req(),
+            )]).req(),
         ])
         aa = twc.Link(modname='tw2.dynforms', filename='static/office-calendar.png').req()
         aa.prepare()
