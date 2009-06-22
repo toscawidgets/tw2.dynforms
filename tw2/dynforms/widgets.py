@@ -1,70 +1,11 @@
+"""
+tw2.dynforms is a library of widgets for building dynamic forms. The widgets use a combination of client and server logic to allow developers to utilise powerful functionality with ease. To get a feel for what's available, you can see demos of the available widgets in the widget browser. There is also a more detailed demo application in the source distribution.
+"""
+
 import tw2.core as twc, tw2.forms as twf, datetime as dt
 
 #--
-# Miscellaneous widgets
-#--
-
-class LinkContainer(twc.DisplayOnlyWidget):
-    """This widget provides a "View" link adjacent to any other widget required. This link is visible only when a value is selected, and allows the user to view detailed information on the current selection. The widget must be created with a single child, and the child must have its ID set to None."""
-    template = "genshi:tw2.dynforms.templates.link_container"
-    resources = [twc.JSLink(modname=__name__, filename='static/dynforms.js')]
-
-    link = twc.Param('The link target. If a $ character is present in the URL, it is replaced with the current value of the widget.')
-    view_text = twc.Param('Allows you to override the text string "view"', default='View')
-
-    def prepare(self):
-        super(LinkContainer, self).prepare()
-        self.child.safe_modify('attrs')
-        self.child.attrs['onchange'] = (('twd_link_onchange(this, "%s");' % self.link) +
-                                            self.child.attrs.get('onchange', ''))
-        self.safe_modify('attrs')
-        self.attrs['id'] = self.child.compound_id + ':view'
-        if not self.child.value:
-            self.attrs['style'] = 'display:none;' + self.attrs.get('style', '')
-
-
-class CustomisedForm(twf.Form):
-    """A form that allows specification of several useful client-side behaviours."""
-    blank_deleted = twc.Param('Blank out any deleted form fields from GrowingTable on the page. This is required for growing to function correctly - you must use GrowingTableFieldSet within a CustomisedForm with this option set.', default=True)
-    disable_enter = twc.Param('Disable the enter button (except with textarea fields). This reduces the chance of users accidentally submitting the form.', default=True)
-    prevent_multi_submit = twc.Param('When the user clicks the submit button, disable it, to prevent the user causing multiple submissions.', default=True)
-
-    resources = [twc.JSLink(modname=__name__, filename="static/dynforms.js")]
-
-    def prepare(self):
-        super(CustomisedForm, self).update_params(prepare)
-        if self.blank_deleted:
-            self.safe_modify('attrs')
-            self.attrs['onsubmit'] = 'twd_blank_deleted()'
-        if self.disable_enter:
-            self.safe_modify('resources')
-            self.resources.append(twc.JSSource('document.onkeypress = twd_suppress_enter;').req())
-        if self.prevent_multi_submit:
-            self.safe_modify('submit_attrs')
-            self.submit_attrs['onclick'] = 'return twd_no_multi_submit(this)'
-
-class WriteOnlyValidator(twc.Validator):
-    def __init__(self, token, *args, **kw):
-        super(WriteOnlyValidator, self).__init__(*args, **kw)
-        self.token = token
-    def to_python(self, value, state=None):
-        return value == self.token and twc.EmptyMarker or value
-
-class WriteOnlyTextField(twf.TextField):
-    """A text field that is write-only and never reveals database content. If a value exists in the database, a placeholder like "(supplied)" will be substituted. If the user does not modify the value, the validator will return a WriteOnlyMarker instance. Call strip_wo_markers to remove these from the dictionary."""
-
-    token = twc.Param('Text that is displayed instead of the data. This can only be specified at widget creation, not at display time.', default='(supplied)')
-
-    def __init__(self, *args, **kw):
-        super(WriteOnlyTextField, self).__init__(*args, **kw)
-        self.validator = WriteOnlyValidator(self.token)
-    def prepare(self):
-        super(WriteOnlyTextField, self).prepare()
-        self.value = self.value and self.token
-
-
-#--
-# Growing forms
+# Growing
 #--
 class DeleteButton(twf.ImageButton):
     """A button to delete a row in a growing form. This is created automatically and would not usually be used directly."""
@@ -135,7 +76,7 @@ class GrowingGridLayout(twf.GridLayout):
         hidden_row.attrs['style'] = 'display:none;' + hidden_row.attrs.get('style', '')
 
 #--
-# Hiding forms
+# Hiding
 #--
 class HidingContainerMixin(object):
     """Mixin to add hiding functionality to a container widget. The developer can use multiple inheritence to combine this class with a container widget, e.g. ListFieldSet. For this to work correctly, the container must make use of the container_attrs parameter on child widgets."""
@@ -241,6 +182,9 @@ class HidingRadioButtonList(HidingSelectionList, twf.RadioButtonList):
     __doc__ = HidingComponentMixin.__doc__.replace('$$', 'RadioButtonList')
 
 
+#--
+# Miscellaneous widgets
+#--
 class CalendarDatePicker(twf.TextField):
     """
     A JavaScript calendar system for picking dates.
@@ -279,3 +223,59 @@ class CalendarDateTimePicker(CalendarDatePicker):
     """
     validator = twc.DateTimeValidator
     show_time = True
+
+
+class LinkContainer(twc.DisplayOnlyWidget):
+    """This widget provides a "View" link adjacent to any other widget required. This link is visible only when a value is selected, and allows the user to view detailed information on the current selection. The widget must be created with a single child, and the child must have its ID set to None."""
+    template = "genshi:tw2.dynforms.templates.link_container"
+    resources = [twc.JSLink(modname=__name__, filename='static/dynforms.js')]
+
+    link = twc.Param('The link target. If a $ character is present in the URL, it is replaced with the current value of the widget.')
+    view_text = twc.Param('Allows you to override the text string "view"', default='View')
+
+    def prepare(self):
+        super(LinkContainer, self).prepare()
+        self.child.safe_modify('attrs')
+        self.child.attrs['onchange'] = (('twd_link_onchange(this, "%s");' % self.link) +
+                                            self.child.attrs.get('onchange', ''))
+        self.safe_modify('attrs')
+        self.attrs['id'] = self.child.compound_id + ':view'
+        if not self.child.value:
+            self.attrs['style'] = 'display:none;' + self.attrs.get('style', '')
+
+
+class CustomisedForm(twf.Form):
+    """A form that allows specification of several useful client-side behaviours."""
+    blank_deleted = twc.Param('Blank out any deleted form fields from GrowingTable on the page. This is required for growing to function correctly - you must use GrowingTableFieldSet within a CustomisedForm with this option set.', default=True)
+    disable_enter = twc.Param('Disable the enter button (except with textarea fields). This reduces the chance of users accidentally submitting the form.', default=True)
+    prevent_multi_submit = twc.Param('When the user clicks the submit button, disable it, to prevent the user causing multiple submissions.', default=True)
+
+    resources = [twc.JSLink(modname=__name__, filename="static/dynforms.js")]
+
+    def prepare(self):
+        super(CustomisedForm, self).update_params(prepare)
+        if self.blank_deleted:
+            self.safe_modify('attrs')
+            self.attrs['onsubmit'] = 'twd_blank_deleted()'
+        if self.disable_enter:
+            self.safe_modify('resources')
+            self.resources.append(twc.JSSource('document.onkeypress = twd_suppress_enter;').req())
+        if self.prevent_multi_submit:
+            self.safe_modify('submit_attrs')
+            self.submit_attrs['onclick'] = 'return twd_no_multi_submit(this)'
+
+
+class WriteOnlyTextField(twf.TextField):
+    """A text field that is write-only and never reveals database content. If a value exists in the database, a placeholder like "(supplied)" will be substituted. If the user does not modify the value, the validator will return a WriteOnlyMarker instance. Call strip_wo_markers to remove these from the dictionary."""
+
+    token = twc.Param('Text that is displayed instead of the data. This can only be specified at widget creation, not at display time.', default='(supplied)')
+
+    def prepare(self):
+        self.value = self.value and self.token
+        super(WriteOnlyTextField, self).prepare()
+
+    def _validate(self, value):
+        if value == self.token:
+            return twc.EmptyField
+        else:
+            return super(WriteOnlyTextField, self)._validate(value)

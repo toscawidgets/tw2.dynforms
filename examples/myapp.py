@@ -10,6 +10,7 @@ class TestPage(twf.FormPage):
         class child(twf.TableLayout):
             id = 'xx'
             a = twd.CalendarDatePicker()
+            aa = twd.WriteOnlyTextField(validator=twc.EmailValidator, value='xx')
             b = twf.CheckBox(validator=twc.Required)
             c = twd.LinkContainer(link='x$', child=twf.SingleSelectField(options=['']+opts))
             class d(twd.GrowingGridLayout):
