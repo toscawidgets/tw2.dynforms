@@ -25,9 +25,7 @@ class LinkContainer(twc.DisplayOnlyWidget):
 
 class CustomisedForm(twf.Form):
     """A form that allows specification of several useful client-side behaviours."""
-    # TBD: make growing not need this
     blank_deleted = twc.Param('Blank out any deleted form fields from GrowingTable on the page. This is required for growing to function correctly - you must use GrowingTableFieldSet within a CustomisedForm with this option set.', default=True)
-    # TBD: 'save_prompt': 'If the user navigates away without submitted the form, and there are changes, this will prompt the user.',
     disable_enter = twc.Param('Disable the enter button (except with textarea fields). This reduces the chance of users accidentally submitting the form.', default=True)
     prevent_multi_submit = twc.Param('When the user clicks the submit button, disable it, to prevent the user causing multiple submissions.', default=True)
 
@@ -40,11 +38,10 @@ class CustomisedForm(twf.Form):
             self.attrs['onsubmit'] = 'twd_blank_deleted()'
         if self.disable_enter:
             self.safe_modify('resources')
-            self.resources.append(twc.JSSource('document.onkeypress = twd_suppress_enter;'))
+            self.resources.append(twc.JSSource('document.onkeypress = twd_suppress_enter;').req())
         if self.prevent_multi_submit:
             self.safe_modify('submit_attrs')
             self.submit_attrs['onclick'] = 'return twd_no_multi_submit(this)'
-
 
 class WriteOnlyValidator(twc.Validator):
     def __init__(self, token, *args, **kw):
@@ -62,7 +59,7 @@ class WriteOnlyTextField(twf.TextField):
         super(WriteOnlyTextField, self).__init__(*args, **kw)
         self.validator = WriteOnlyValidator(self.token)
     def prepare(self):
-        super(WriteOnlyMixin, self).prepare()
+        super(WriteOnlyTextField, self).prepare()
         self.value = self.value and self.token
 
 
@@ -115,7 +112,7 @@ class GrowingGridLayout(twf.GridLayout):
 
     def prepare(self):
         if not hasattr(self, '_validated'):
-            self.value = [None] + self.value
+            self.value = [None] + (self.value or [])
         super(GrowingGridLayout, self).prepare()
         if not hasattr(self, '_validated'):
             self.repetitions = len(self.value) + 1
