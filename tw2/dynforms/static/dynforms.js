@@ -70,26 +70,25 @@ function twd_hiding_listitem_onchange(ctrl)
 function twd_grow_add(ctrl)
 {
     var parent_id = ctrl.id.substring(0, ctrl.id.lastIndexOf(':'));
-    var id_prefix = parent_id.substring(0, parent_id.lastIndexOf(':'));
-    var next_num;
-    for(next_num = 0; document.getElementById(id_prefix + ':' + next_num); next_num++) {}
-    var this_num = parseInt(parent_id.substr(parent_id.lastIndexOf(':')+1));
-    if(this_num != next_num - 2)
+    var id_prefix = parent_id.substring(0, parent_id.lastIndexOf(':')+1);
+    var next_num = parseInt(parent_id.substr(parent_id.lastIndexOf(':')+1)) + 1;
+    if(document.getElementById(id_prefix + next_num))
         return;
-    var node = document.getElementById(id_prefix + ':0').cloneNode(true);
+    var clone_node = document.getElementById(id_prefix + '0');
+    var node = clone_node.cloneNode(true);
 
-    var stemlen = id_prefix.length + 2;
-    var new_prefix = id_prefix + ':' + next_num;
+    var stemlen = id_prefix.length + 1;
+    var new_prefix = id_prefix + next_num;
     var x = twd_get_all_nodes(node)
     for(var i = 0; i < x.length; i++)
     {
         if(x[i].name) x[i].name = new_prefix + x[i].name.substr(stemlen);
         if(x[i].id) x[i].id = new_prefix + x[i].id.substr(stemlen);
     }
-    var last_node = document.getElementById(id_prefix + ':' + (next_num - 1));
-    last_node.appendSibling(node);
+    clone_node.parentNode.appendChild(node);
+    node.style.display = '';
 
-    var del = document.getElementById(id_prefix + ':_del');
+    var del = document.getElementById(parent_id + ':del');
     if(del) del.style.display = '';
 }
 

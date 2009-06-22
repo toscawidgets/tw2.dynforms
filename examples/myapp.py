@@ -12,10 +12,10 @@ class TestPage(twf.FormPage):
             a = twd.CalendarDatePicker()
             b = twf.CheckBox(validator=twc.Required)
             c = twd.LinkContainer(link='x$', child=twf.SingleSelectField(options=['']+opts))
-            #class d(twd.GrowingGridLayout):
-            #    value = [{'a':'aaa', 'b':'bbb'}]
-            #    a = twf.TextField()
-            #    b = twf.TextField()
+            class d(twd.GrowingGridLayout):
+                value = [{'a':'aaa', 'b':'bbb'}]
+                a = twf.TextField()
+                b = twf.TextField()
             class e(twd.HidingTableLayout):
                 a = twd.HidingSingleSelectField(options=['']+opts, mapping={'Red':['b'], 'Yellow':['c']})
                 b = twf.TextField(validator=twc.Required)

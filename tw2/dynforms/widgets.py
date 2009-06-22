@@ -105,7 +105,6 @@ class GrowingGridLayout(twf.GridLayout):
 
     resources = [twc.JSLink(modname=__name__, filename="static/dynforms.js")]
     validator = StripBlanks()
-    extra_reps = twc.Variable(default=2) # User shouldn't modify this
     template = 'genshi:tw2.dynforms.templates.growing_grid_layout'
 
     @classmethod
@@ -116,21 +115,24 @@ class GrowingGridLayout(twf.GridLayout):
         #children.append(twf.HiddenField('id', validator=fe.validators.Int))
 
     def prepare(self):
+        self.value = [None] + self.value
         super(GrowingGridLayout, self).prepare()
+        self.repetitions = len(self.value) + 1
         aa = twc.Link(modname=__name__, filename="static/undo.png").req()
         aa.prepare()
         self.undo_url = aa.link
-        # last two rows have delete hidden (and hidingbutton) and get onchange
-        for r in (self.children[self.repetitions-2], self.children[self.repetitions-1]):
+        # First and last rows have delete hidden (and hidingbutton) and get onchange
+        for r in (self.children[0], self.children[self.repetitions-1]):
             for c in r.children:
                 c.safe_modify('attrs')
                 if c.id == 'del':
                     c.attrs['style'] = 'display:none;' + c.attrs.get('style', '')
-                c.attrs['onchange'] = 'twd_grow_add(this);' + c.attrs.get('onchange', '')
-        # last row is hidden
-        last_row = self.children[self.repetitions-1]
-        last_row.safe_modify('attrs')
-        last_row.attrs['style'] = 'display:none;' + last_row.attrs.get('style', '')
+                else:
+                    c.attrs['onchange'] = 'twd_grow_add(this);' + c.attrs.get('onchange', '')
+        # First row is hidden
+        hidden_row = self.children[0]
+        hidden_row.safe_modify('attrs')
+        hidden_row.attrs['style'] = 'display:none;' + hidden_row.attrs.get('style', '')
 
 #--
 # Hiding forms
