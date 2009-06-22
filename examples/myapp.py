@@ -6,12 +6,12 @@ opts = ['Red', 'Yellow', 'Green', 'Blue']
 
 class TestPage(twf.FormPage):
     title = 'tw2.dynforms example'
-    class child(twf.Form):
+    class child(twd.CustomisedForm):
         class child(twf.TableLayout):
             id = 'xx'
             a = twd.CalendarDatePicker()
             aa = twd.WriteOnlyTextField(validator=twc.EmailValidator, value='xx')
-            b = twf.CheckBox(validator=twc.Required)
+            b = twf.CheckBox(validator=twc.Validator(required=True))
             c = twd.LinkContainer(link='x$', child=twf.SingleSelectField(options=['']+opts))
             class d(twd.GrowingGridLayout):
                 value = [{'a':'aaa', 'b':'bbb'}]

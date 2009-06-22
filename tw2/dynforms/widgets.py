@@ -1,20 +1,16 @@
-"""
-tw2.dynforms is a library of widgets for building dynamic forms. The widgets use a combination of client and server logic to allow developers to utilise powerful functionality with ease. To get a feel for what's available, you can see demos of the available widgets in the widget browser. There is also a more detailed demo application in the source distribution.
-"""
-
 import tw2.core as twc, tw2.forms as twf, datetime as dt
 
 #--
 # Growing
 #--
 class DeleteButton(twf.ImageButton):
-    """A button to delete a row in a growing form. This is created automatically and would not usually be used directly."""
+    """A button to delete a row in a growing grid. This is created automatically and would not usually be used directly."""
     attrs = {
-        'alt': 'Delete row',
         'onclick': 'twd_grow_del(this); return false;',
     }
     modname = __name__
     filename = 'static/del.png'
+    alt = 'Delete row'
 
 
 class StripBlanks(twc.Validator):
@@ -41,24 +37,23 @@ class GrowingGridLayout(twf.GridLayout):
     """A GridLayout that can dynamically grow on the client. This is useful for allowing users to enter a list of items that can vary in length. The widgets are presented as a grid, with each field being a column. Delete and undo functionality is provided. To function correctly, the widget must appear inside a CustomisedForm."""
 
     resources = [twc.JSLink(modname=__name__, filename="static/dynforms.js")]
-    validator = StripBlanks()
     template = 'genshi:tw2.dynforms.templates.growing_grid_layout'
+
+    # User shouldn't change these params
+    extra_reps = twc.Variable(default=1)
+    min_reps = twc.Variable()
+    max_reps = twc.Variable()
 
     @classmethod
     def post_define(cls):
         if hasattr(cls.child, 'children'):
             if not hasattr(cls.child.children, 'del'): # TBD: 'del' in ...
                 cls.child = cls.child(children = list(cls.child.children) + [DeleteButton(id='del', label='')])
-        #children.append(twf.HiddenField('id', validator=fe.validators.Int))
 
     def prepare(self):
         if not hasattr(self, '_validated'):
             self.value = [None] + (self.value or [])
         super(GrowingGridLayout, self).prepare()
-        if not hasattr(self, '_validated'):
-            self.repetitions = len(self.value) + 1
-        else:
-            self.repetitions = len(self.value)
         aa = twc.Link(modname=__name__, filename="static/undo.png").req()
         aa.prepare()
         self.undo_url = aa.link
@@ -74,6 +69,10 @@ class GrowingGridLayout(twf.GridLayout):
         hidden_row = self.children[0]
         hidden_row.safe_modify('attrs')
         hidden_row.attrs['style'] = 'display:none;' + hidden_row.attrs.get('style', '')
+
+    def _validate(self, value):
+        super(GrowingGridLayout, self)._validate([None] + StripBlanks().to_python(value))
+
 
 #--
 # Hiding
@@ -185,7 +184,7 @@ class HidingRadioButtonList(HidingSelectionList, twf.RadioButtonList):
 #--
 # Miscellaneous widgets
 #--
-class CalendarDatePicker(twf.TextField):
+class CalendarDatePicker(twf.InputField):
     """
     A JavaScript calendar system for picking dates.
     """
@@ -199,6 +198,7 @@ class CalendarDatePicker(twf.TextField):
     value = twc.Param('The default value is the current time', default=twc.Deferred(lambda: dt.datetime.now()))
     validator = twc.Param('To control the date format, specify it in the validator', default=twc.DateValidator)
     template = "genshi:tw2.dynforms.templates.calendar"
+    type = 'text'
 
     def prepare(self):
         super(CalendarDatePicker, self).prepare()
@@ -253,13 +253,13 @@ class CustomisedForm(twf.Form):
     resources = [twc.JSLink(modname=__name__, filename="static/dynforms.js")]
 
     def prepare(self):
-        super(CustomisedForm, self).update_params(prepare)
+        super(CustomisedForm, self).prepare()
         if self.blank_deleted:
             self.safe_modify('attrs')
             self.attrs['onsubmit'] = 'twd_blank_deleted()'
         if self.disable_enter:
             self.safe_modify('resources')
-            self.resources.append(twc.JSSource('document.onkeypress = twd_suppress_enter;').req())
+            self.resources.append(twc.JSSource(src='document.onkeypress = twd_suppress_enter;').req())
         if self.prevent_multi_submit:
             self.safe_modify('submit_attrs')
             self.submit_attrs['onclick'] = 'return twd_no_multi_submit(this)'

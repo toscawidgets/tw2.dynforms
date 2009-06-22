@@ -149,16 +149,11 @@ function twd_suppress_enter(evt) {
     if (evt.keyCode == 13)  {return node.type == 'textarea';}
 }
 
-function twd_find_node(node, suffix)
-{
-    var prefix = node.id.substr(0, node.id.lastIndexOf(":") + (suffix ? 1 : 0));
-    return document.getElementById(prefix + suffix);
-}
-
 function twd_no_multi_submit(ctrl)
 {
+    return true; // TBD
     ctrl.disabled = 1;
-    var form = twd_find_node(ctrl, '');
+    var form = document.getElementById(ctrl.id.substr(0, ctrl.id.lastIndexOf(":")));
     if(form.onsubmit) form.onsubmit();
     form.submit();
     return false;
