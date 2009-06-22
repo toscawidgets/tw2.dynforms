@@ -99,7 +99,6 @@ class StripBlanks(twc.Validator):
     def to_python(self, value):
         return [v for v in value if self.any_content(v)]
 
-
 class GrowingGridLayout(twf.GridLayout):
     """A GridLayout that can dynamically grow on the client. This is useful for allowing users to enter a list of items that can vary in length. The widgets are presented as a grid, with each field being a column. Delete and undo functionality is provided. To function correctly, the widget must appear inside a CustomisedForm."""
 
@@ -115,9 +114,13 @@ class GrowingGridLayout(twf.GridLayout):
         #children.append(twf.HiddenField('id', validator=fe.validators.Int))
 
     def prepare(self):
-        self.value = [None] + self.value
+        if not hasattr(self, '_validated'):
+            self.value = [None] + self.value
         super(GrowingGridLayout, self).prepare()
-        self.repetitions = len(self.value) + 1
+        if not hasattr(self, '_validated'):
+            self.repetitions = len(self.value) + 1
+        else:
+            self.repetitions = len(self.value)
         aa = twc.Link(modname=__name__, filename="static/undo.png").req()
         aa.prepare()
         self.undo_url = aa.link
