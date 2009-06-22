@@ -19,7 +19,7 @@ class LinkContainer(twc.DisplayOnlyWidget):
                                             self.child.attrs.get('onchange', ''))
         self.safe_modify('attrs')
         self.attrs['id'] = self.child.compound_id + ':view'
-        if not self.value:
+        if not self.child.value:
             self.attrs['style'] = 'display:none;' + self.attrs.get('style', '')
 
 
