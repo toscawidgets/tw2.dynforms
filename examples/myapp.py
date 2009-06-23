@@ -1,10 +1,12 @@
 import webob as wo, wsgiref.simple_server as wrs, os
 import tw2.core as twc, tw2.forms as twf, tw2.dynforms as twd
 
+mw = twc.TwMiddleware(None, controller_prefix='/')
+
 opts = ['Red', 'Yellow', 'Green', 'Blue']
 
 
-class TestPage(twf.FormPage):
+class Index(twf.FormPage):
     title = 'tw2.dynforms example'
     class child(twd.CustomisedForm):
         class child(twf.TableLayout):
@@ -15,12 +17,13 @@ class TestPage(twf.FormPage):
             c = twd.LinkContainer(link='x$', child=twf.SingleSelectField(options=['']+opts))
             class d(twd.GrowingGridLayout):
                 value = [{'a':'aaa', 'b':'bbb'}]
-                a = twf.TextField()
+                a = twf.TextField(validator=twc.EmailValidator)
                 b = twf.TextField()
             class e(twd.HidingTableLayout):
                 a = twd.HidingSingleSelectField(options=['']+opts, mapping={'Red':['b'], 'Yellow':['c']})
                 b = twf.TextField(validator=twc.Required)
                 c = twf.TextField()
+mw.controllers.register(Index, 'index')
 
 
 def app(environ, start_response):
@@ -30,6 +33,4 @@ def app(environ, start_response):
 
 
 if __name__ == "__main__":
-    mw = twc.TwMiddleware(app, debug=True)
-    mw.controllers.register(TestPage, 'test')
     wrs.make_server('', 8000, mw).serve_forever()
