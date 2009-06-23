@@ -7,7 +7,7 @@ class DemoGrowingGridLayout(twd.GrowingGridLayout):
 
 class DemoHidingCheckBox(twd.HidingTableLayout):
     demo_for = twd.HidingCheckBox
-    delivery = twd.HidingCheckBox(label_text='Delivery required?', mapping={1:['address']}),
+    delivery = twd.HidingCheckBox(label_text='Delivery required?', mapping={1:['address']})
     address = twf.TextField()
 
 class DemoHidingCheckBoxList(twd.HidingTableLayout):
@@ -17,7 +17,7 @@ class DemoHidingCheckBoxList(twd.HidingTableLayout):
             'E-mail': ['email_address'],
             'Phone': ['phone_number'],
             'SMS': ['phone_number'],
-        }),
+        })
     email_address = twf.TextField()
     phone_number = twf.TextField()
 
@@ -28,7 +28,7 @@ class DemoHidingRadioButtonList(twd.HidingTableLayout):
             'E-mail': ['email_address'],
             'Phone': ['phone_number'],
             'SMS': ['phone_number'],
-        }),
+        })
     email_address = twf.TextField()
     phone_number = twf.TextField()
 
@@ -39,7 +39,7 @@ class DemoHidingSingleSelectField(twd.HidingTableLayout):
             'E-mail': ['email_address'],
             'Phone': ['phone_number'],
             'SMS': ['phone_number'],
-        }),
+        })
     email_address = twf.TextField()
     phone_number = twf.TextField()
 

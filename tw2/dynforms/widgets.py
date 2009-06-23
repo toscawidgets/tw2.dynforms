@@ -148,11 +148,11 @@ class HidingTableLayout(HidingContainerMixin, twf.TableLayout):
 class HidingListLayout(HidingContainerMixin, twf.ListLayout):
     """A ListLayout that can contain hiding widgets."""
 
-class HidingComponentMixin(object):
-    """This widget is a $$ with additional functionality to hide or show other widgets in the form, depending on the value selected. To function correctly, the widget must be used inside a suitable container, e.g. HidingTableForm, and the widget's id must not contain an underscore."""
-    javascript = [twc.JSLink(modname=__name__, filename='static/dynforms.js')]
+class HidingComponentMixin(twc.Widget):
+    """This widget is a $$ with additional functionality to hide or show other widgets in the form, depending on the value selected. The widget must be used inside a hiding container, e.g. HidingTableLayout."""
+    resources = [twc.JSLink(modname=__name__, filename='static/dynforms.js')]
 
-    mapping = twc.Param('Dict that maps selection values to visible controls', request_local=False)
+    mapping = twc.Param('A dictionary that maps selection values to visible controls', request_local=False)
 
     def prepare(self):
         super(HidingComponentMixin, self).prepare()
@@ -172,7 +172,7 @@ class HidingSelectionList(HidingComponentMixin, twf.SelectionList):
     def prepare(self):
         super(HidingSelectionList, self).prepare()
         for opt in self.options:
-            opt[2]['onclick'] = 'twd_hiding_listitem_onchange(this)'
+            opt[0]['onclick'] = 'twd_hiding_listitem_onchange(this);' + opt[0].get('onclick', '')
 
 class HidingCheckBoxList(HidingSelectionList, twf.CheckBoxList):
     __doc__ = HidingComponentMixin.__doc__.replace('$$', 'CheckBoxList')
@@ -193,10 +193,11 @@ class CalendarDatePicker(twf.InputField):
         twc.JSLink(modname='tw2.dynforms', filename='static/calendar/calendar.js'),
         twc.JSLink(modname='tw2.dynforms', filename='static/calendar/calendar-setup.js'),
     ]
+    format = twc.Param('Date/time format to use', default='%d/%m/%y')
     language = twc.Param('Short country code for language to use, e.g. fr, de', default='en')
     show_time = twc.Variable('Whether to display the time', default=False)
-    value = twc.Param('The default value is the current time', default=twc.Deferred(lambda: dt.datetime.now()))
-    validator = twc.Param('To control the date format, specify it in the validator', default=twc.DateValidator)
+    value = twc.Param('The default value is the current date/time', default=twc.Deferred(lambda: dt.datetime.now()))
+    validator = twc.DateValidator
     template = "genshi:tw2.dynforms.templates.calendar"
     type = 'text'
 
@@ -226,12 +227,12 @@ class CalendarDateTimePicker(CalendarDatePicker):
 
 
 class LinkContainer(twc.DisplayOnlyWidget):
-    """This widget provides a "View" link adjacent to any other widget required. This link is visible only when a value is selected, and allows the user to view detailed information on the current selection. The widget must be created with a single child, and the child must have its ID set to None."""
+    """This widget provides a "View" link adjacent to any other widget required. This link is visible only when a value is selected, and allows the user to view detailed information on the current selection."""
     template = "genshi:tw2.dynforms.templates.link_container"
     resources = [twc.JSLink(modname=__name__, filename='static/dynforms.js')]
 
     link = twc.Param('The link target. If a $ character is present in the URL, it is replaced with the current value of the widget.')
-    view_text = twc.Param('Allows you to override the text string "view"', default='View')
+    view_text = twc.Param('Text to appear in the link', default='View')
 
     def prepare(self):
         super(LinkContainer, self).prepare()
@@ -246,7 +247,7 @@ class LinkContainer(twc.DisplayOnlyWidget):
 
 class CustomisedForm(twf.Form):
     """A form that allows specification of several useful client-side behaviours."""
-    blank_deleted = twc.Param('Blank out any deleted form fields from GrowingTable on the page. This is required for growing to function correctly - you must use GrowingTableFieldSet within a CustomisedForm with this option set.', default=True)
+    blank_deleted = twc.Param('Blank out any invisible form fields before submitting. This is needed for GrowingGrid.', default=True)
     disable_enter = twc.Param('Disable the enter button (except with textarea fields). This reduces the chance of users accidentally submitting the form.', default=True)
     prevent_multi_submit = twc.Param('When the user clicks the submit button, disable it, to prevent the user causing multiple submissions.', default=True)
 
@@ -268,7 +269,7 @@ class CustomisedForm(twf.Form):
 class WriteOnlyTextField(twf.TextField):
     """A text field that is write-only and never reveals database content. If a value exists in the database, a placeholder like "(supplied)" will be substituted. If the user does not modify the value, the validator will return a WriteOnlyMarker instance. Call strip_wo_markers to remove these from the dictionary."""
 
-    token = twc.Param('Text that is displayed instead of the data. This can only be specified at widget creation, not at display time.', default='(supplied)')
+    token = twc.Param('Text that is displayed instead of the data.', default='(supplied)', request_local=False)
 
     def prepare(self):
         self.value = self.value and self.token

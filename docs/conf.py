@@ -13,7 +13,7 @@
 
 import sys, os
 import pkg_resources
-execfile(os.path.join("..", "tw", "tw2dynforms", "release.py"))
+#execfile(os.path.join("..", "tw", "tw2dynforms", "release.py"))
 
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
@@ -44,16 +44,16 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General substitutions.
-project = __DISTRIBUTION__
-copyright = __COPYRIGHT__
+#project = __DISTRIBUTION__
+#copyright = __COPYRIGHT__
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
 #
 # The short X.Y version.
-version = __VERSION__
+#version = __VERSION__
 # The full version, including alpha/beta/rc tags.
-release = pkg_resources.get_distribution(__DISTRIBUTION__).version
+#release = pkg_resources.get_distribution(__DISTRIBUTION__).version
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
 #today = ''
@@ -125,7 +125,7 @@ html_last_updated_fmt = '%b %d, %Y'
 #html_use_opensearch = False
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = __DISTRIBUTION__ + 'doc'
+#htmlhelp_basename = __DISTRIBUTION__ + 'doc'
 
 
 # Options for LaTeX output
@@ -141,9 +141,9 @@ htmlhelp_basename = __DISTRIBUTION__ + 'doc'
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = [
   ('index',
-   __DISTRIBUTION__+ '.tex',
-   __DISTRIBUTION__ + ' Documentation',
-   __AUTHOR__,
+#   __DISTRIBUTION__+ '.tex',
+#   __DISTRIBUTION__ + ' Documentation',
+#   __AUTHOR__,
    'manual'),
 ]
 
