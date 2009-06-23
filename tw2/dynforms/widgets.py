@@ -186,14 +186,13 @@ class HidingRadioButtonList(HidingSelectionList, twf.RadioButtonList):
 #--
 class CalendarDatePicker(twf.InputField):
     """
-    A JavaScript calendar system for picking dates.
+    A JavaScript calendar system for picking dates. The date format can be configured on the validator.
     """
     resources = [
         twc.CSSLink(modname='tw2.dynforms', filename='static/calendar/calendar-system.css'),
         twc.JSLink(modname='tw2.dynforms', filename='static/calendar/calendar.js'),
         twc.JSLink(modname='tw2.dynforms', filename='static/calendar/calendar-setup.js'),
     ]
-    format = twc.Param('Date/time format to use', default='%d/%m/%y')
     language = twc.Param('Short country code for language to use, e.g. fr, de', default='en')
     show_time = twc.Variable('Whether to display the time', default=False)
     value = twc.Param('The default value is the current date/time', default=twc.Deferred(lambda: dt.datetime.now()))
