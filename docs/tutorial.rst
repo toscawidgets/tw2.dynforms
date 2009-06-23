@@ -17,6 +17,7 @@ Getting Started
 The best way to install the required packages is using easy_install. Assuming you already have easy_install, you'll need to::
 
     easy_install tw2.dynforms
+    easy_install elixir
 
 To start building our application, lets create ``myapp.py`` with the following content::
 
@@ -44,6 +45,8 @@ Model
 The first step is to define the database tables. We'll use Elixir as our object-relational mapper; this is an active record style ORM that builds on SQLAlchemy. Add the following to ``myapp.py``::
 
     import elixir as el
+    el.metadata.connect('sqlite:///myapp.db')
+    el.options_defaults['shortnames'] = True
 
     class People(el.Entity):
         name = el.Field(el.String(100))
@@ -66,17 +69,18 @@ The first step is to define the database tables. We'll use Elixir as our object-
 
     el.setup_all()
 
-The next step is to actually create the database tables. TBD
+The next step is to actually create the database tables, and some test data. In the python interpreter, issue::
 
-We also want to create some test orders, so we have some data to work with later on::
+    >>> from myapp2 import *
+    >>> el.metadata.create_all()
 
-    jb = People(name='Joe Bloggs')
-    jd = People(name='Jane Doe')
-    sp = Status(name='Pending')
-    sd = Status(name='Dispatched')
-    Order(name='Garden furniture', status=sp, customer=jb, assignee=jd)
-    Order(name='Barbeque', status=sd, customer=jd, assignee=jb)
-    session.flush()
+    >>> jb = People(name='Joe Bloggs')
+    >>> jd = People(name='Jane Doe')
+    >>> sp = Status(name='Pending')
+    >>> sd = Status(name='Dispatched')
+    >>> Order(name='Garden furniture', status=sp, customer=jb, assignee=jd)
+    >>> Order(name='Barbeque', status=sd, customer=jd, assignee=jb)
+    >>> el.session.commit()
 
 
 Front Page
@@ -103,27 +107,25 @@ Form Editing
 Users need to be able to click on an order to get further information. We'll build an inital version of the detail form using ToscaWidgets. Add the following to ``myapp.py``::
 
     class OrderForm(twf.FormPage):
+        title = 'Order'
         class child(twd.CustomisedForm):
             class child(twd.HidingTableLayout):
                 id = twf.HiddenField()
                 name = twf.TextField()
-                status_id = twf.SingleSelectField(options=[str(r) for r in Status.query])
-                customer_id = twf.SingleSelectField(options=[str(r) for r in People.query])
-                assignee_id = twf.SingleSelectField(options=[str(r) for r in People.query])
+                status_id = twf.SingleSelectField(options=[str(r) for r in Status.query.all()])
+                customer_id = twf.SingleSelectField(options=[str(r) for r in People.query.all()])
+                assignee_id = twf.SingleSelectField(options=[str(r) for r in People.query.all()])
                 delivery = twf.CheckBox()
                 address = twf.TextArea()
 
-        @classmethod
-        def request(cls, req, **kw):
-            if req.method == 'GET':
-                kw['value'] = Order.query.get(req.GET['id'])
-            return super(OrderForm, cls).request(req, **kw)
+        def fetch_data(self, req):
+            self.value = Order.query.get(req.GET['id'])
 
     mw.controllers.register(OrderForm, 'order')
 
 Users will need a link from the front page to the edit page. Update the ``Index`` class and add, at the beginning::
 
-    id = LinkField(link='order?id=$', text='Edit', label=None)
+    id = twf.LinkField(link='order?id=$', text='Edit', label=None)
 
 Have a look at this in your browser - you will now be able to navigate from the order list, to the order editing form. To make the form save when you click "submit", add the following to the ``Order`` class::
 
@@ -154,16 +156,19 @@ Growing
 
 In this application, each Order can contain a number of Items. Most orders will just have a handful, but potentially some orders may have a large number of items. What we really want is a dynamic form that grows spaces to enter items, as needed. Dynforms supports a variety of Growing forms to allow this. To implement this, first we need to add a new database class::
 
-    class Item(Entity):
-        order = ManyToOne(Order)
-        code = Field(String(50))
-        description = Field(String(200))
+    class Item(el.Entity):
+        order = el.ManyToOne(Order)
+        code = el.Field(el.String(50))
+        description = el.Field(el.String(200))
 
-Also, add the following to the Order class::
+Add the following to the ``Order`` class::
 
-    items = OneToMany('Item')
+    items = el.OneToMany('Item')
 
-TBD: create tables
+Create the new database table::
+
+    >>> from myapp2 import *
+    >>> el.metadata.create_all()
 
 To create the corresponding widgets, add this to ``OrderForm``, after address::
 

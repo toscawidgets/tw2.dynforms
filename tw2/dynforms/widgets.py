@@ -40,7 +40,9 @@ class GrowingGridLayout(twf.GridLayout):
 
     # TBD: support these properly & min/max
     repetitions = twc.Variable()
-    extra_reps = twc.Param(default=1)
+    extra_reps = twc.Variable(default=1)
+    mix_reps = twc.Variable()
+    max_reps = twc.Variable()
 
     @classmethod
     def post_define(cls):
@@ -95,7 +97,7 @@ class HidingCheckBox(HidingComponentMixin, twf.CheckBox):
     __doc__ = HidingComponentMixin.__doc__.replace('$$', 'CheckBox')
     attrs = {'onclick': 'twd_hiding_onchange(this)'}
 
-class HidingSelectionList(HidingComponentMixin, twf.SelectionList):
+class HidingSelectionList(HidingComponentMixin, twf.widgets.SelectionList):
     def prepare(self):
         super(HidingSelectionList, self).prepare()
         for opt in self.options:
