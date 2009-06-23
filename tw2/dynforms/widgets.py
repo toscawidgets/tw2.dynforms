@@ -34,15 +34,13 @@ class StripBlanks(twc.Validator):
         return [v for v in value if self.any_content(v)]
 
 class GrowingGridLayout(twf.GridLayout):
-    """A GridLayout that can dynamically grow on the client. This is useful for allowing users to enter a list of items that can vary in length. The widgets are presented as a grid, with each field being a column. Delete and undo functionality is provided. To function correctly, the widget must appear inside a CustomisedForm."""
-
+    """A GridLayout that can dynamically grow on the client, with delete and undo functionality. This is useful for allowing users to enter a list of items that can vary in length. To function correctly, the widget must appear inside a CustomisedForm."""
     resources = [twc.JSLink(modname=__name__, filename="static/dynforms.js")]
     template = 'genshi:tw2.dynforms.templates.growing_grid_layout'
 
-    # User shouldn't change these params
-    extra_reps = twc.Variable(default=1)
-    min_reps = twc.Variable()
-    max_reps = twc.Variable()
+    # TBD: support these properly & min/max
+    repetitions = twc.Variable()
+    extra_reps = twc.Param(default=1)
 
     @classmethod
     def post_define(cls):
@@ -77,6 +75,38 @@ class GrowingGridLayout(twf.GridLayout):
 #--
 # Hiding
 #--
+class HidingComponentMixin(twc.Widget):
+    """This widget is a $$ with additional functionality to hide or show other widgets in the form, depending on the value selected. The widget must be used inside a hiding container, e.g. HidingTableLayout."""
+    resources = [twc.JSLink(modname=__name__, filename='static/dynforms.js')]
+
+    mapping = twc.Param('A dictionary that maps selection values to visible controls', request_local=False)
+
+    def prepare(self):
+        super(HidingComponentMixin, self).prepare()
+        self.safe_modify('resources')
+        self.resources.append(
+            twc.JSFuncCall(function='twd_hiding_init', args=(self.compound_id, self.mapping)).req())
+
+class HidingSingleSelectField(HidingComponentMixin, twf.SingleSelectField):
+    __doc__ = HidingComponentMixin.__doc__.replace('$$', 'SingleSelectField')
+    attrs = {'onchange': 'twd_hiding_onchange(this)'}
+
+class HidingCheckBox(HidingComponentMixin, twf.CheckBox):
+    __doc__ = HidingComponentMixin.__doc__.replace('$$', 'CheckBox')
+    attrs = {'onclick': 'twd_hiding_onchange(this)'}
+
+class HidingSelectionList(HidingComponentMixin, twf.SelectionList):
+    def prepare(self):
+        super(HidingSelectionList, self).prepare()
+        for opt in self.options:
+            opt[0]['onclick'] = 'twd_hiding_listitem_onchange(this);' + opt[0].get('onclick', '')
+
+class HidingCheckBoxList(HidingSelectionList, twf.CheckBoxList):
+    __doc__ = HidingComponentMixin.__doc__.replace('$$', 'CheckBoxList')
+
+class HidingRadioButtonList(HidingSelectionList, twf.RadioButtonList):
+    __doc__ = HidingComponentMixin.__doc__.replace('$$', 'RadioButtonList')
+
 class HidingContainerMixin(object):
     """Mixin to add hiding functionality to a container widget. The developer can use multiple inheritence to combine this class with a container widget, e.g. ListFieldSet. For this to work correctly, the container must make use of the container_attrs parameter on child widgets."""
 
@@ -148,43 +178,10 @@ class HidingTableLayout(HidingContainerMixin, twf.TableLayout):
 class HidingListLayout(HidingContainerMixin, twf.ListLayout):
     """A ListLayout that can contain hiding widgets."""
 
-class HidingComponentMixin(twc.Widget):
-    """This widget is a $$ with additional functionality to hide or show other widgets in the form, depending on the value selected. The widget must be used inside a hiding container, e.g. HidingTableLayout."""
-    resources = [twc.JSLink(modname=__name__, filename='static/dynforms.js')]
-
-    mapping = twc.Param('A dictionary that maps selection values to visible controls', request_local=False)
-
-    def prepare(self):
-        super(HidingComponentMixin, self).prepare()
-        self.safe_modify('resources')
-        self.resources.append(
-            twc.JSFuncCall(function='twd_hiding_init', args=(self.compound_id, self.mapping)).req())
-
-class HidingSingleSelectField(HidingComponentMixin, twf.SingleSelectField):
-    __doc__ = HidingComponentMixin.__doc__.replace('$$', 'SingleSelectField')
-    attrs = {'onchange': 'twd_hiding_onchange(this)'}
-
-class HidingCheckBox(HidingComponentMixin, twf.CheckBox):
-    __doc__ = HidingComponentMixin.__doc__.replace('$$', 'CheckBox')
-    attrs = {'onclick': 'twd_hiding_onchange(this)'}
-
-class HidingSelectionList(HidingComponentMixin, twf.SelectionList):
-    def prepare(self):
-        super(HidingSelectionList, self).prepare()
-        for opt in self.options:
-            opt[0]['onclick'] = 'twd_hiding_listitem_onchange(this);' + opt[0].get('onclick', '')
-
-class HidingCheckBoxList(HidingSelectionList, twf.CheckBoxList):
-    __doc__ = HidingComponentMixin.__doc__.replace('$$', 'CheckBoxList')
-
-class HidingRadioButtonList(HidingSelectionList, twf.RadioButtonList):
-    __doc__ = HidingComponentMixin.__doc__.replace('$$', 'RadioButtonList')
-
-
 #--
 # Miscellaneous widgets
 #--
-class CalendarDatePicker(twf.InputField):
+class CalendarDatePicker(twf.widgets.InputField):
     """
     A JavaScript calendar system for picking dates. The date format can be configured on the validator.
     """
@@ -266,7 +263,7 @@ class CustomisedForm(twf.Form):
 
 
 class WriteOnlyTextField(twf.TextField):
-    """A text field that is write-only and never reveals database content. If a value exists in the database, a placeholder like "(supplied)" will be substituted. If the user does not modify the value, the validator will return a WriteOnlyMarker instance. Call strip_wo_markers to remove these from the dictionary."""
+    """A text field that is write-only and never reveals database content. If a value exists in the database, a placeholder like "(supplied)" will be substituted. If the user does not modify the value, the validator will return EmptyField. so a parent CompoundWidget validator does not include it in the dictionary."""
 
     token = twc.Param('Text that is displayed instead of the data.', default='(supplied)', request_local=False)
 

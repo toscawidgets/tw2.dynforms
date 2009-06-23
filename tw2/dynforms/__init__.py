@@ -6,8 +6,8 @@ see demos of the available widgets in the widget browser. There is also a
 more detailed demo application in the source distribution.
 """
 
-from widgets import (WriteOnlyTextField, CalendarDatePicker,
-    CustomisedForm, LinkContainer, GrowingGridLayout, DeleteButton,
-    HidingContainerMixin, HidingTableLayout, HidingComponentMixin,
+from widgets import (WriteOnlyTextField,
+    CustomisedForm, LinkContainer, GrowingGridLayout,
+    HidingTableLayout, HidingListLayout,
     HidingSingleSelectField, HidingCheckBox, HidingCheckBoxList,
-    HidingRadioButtonList, CalendarDateTimePicker)
+    HidingRadioButtonList, CalendarDatePicker, CalendarDateTimePicker)
