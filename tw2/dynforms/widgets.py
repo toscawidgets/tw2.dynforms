@@ -35,7 +35,10 @@ class StripBlanks(twc.Validator):
 
 class GrowingGridLayout(twf.GridLayout):
     """A GridLayout that can dynamically grow on the client, with delete and undo functionality. This is useful for allowing users to enter a list of items that can vary in length. To function correctly, the widget must appear inside a CustomisedForm."""
-    resources = [twc.JSLink(modname=__name__, filename="static/dynforms.js")]
+    resources = [
+        twc.Link(id='undo', modname=__name__, filename="static/undo.png"),
+        twc.JSLink(modname=__name__, filename="static/dynforms.js"),
+    ]
     template = 'genshi:tw2.dynforms.templates.growing_grid_layout'
 
     # TBD: support these properly & min/max
@@ -54,9 +57,6 @@ class GrowingGridLayout(twf.GridLayout):
         if not hasattr(self, '_validated'):
             self.value = [None] + (self.value or [])
         super(GrowingGridLayout, self).prepare()
-        aa = twc.Link(modname=__name__, filename="static/undo.png").req()
-        aa.prepare()
-        self.undo_url = aa.link
         # First and last rows have delete hidden (and hidingbutton) and get onchange
         for r in (self.children[0], self.children[self.repetitions-1]):
             for c in r.children:
@@ -87,7 +87,7 @@ class HidingComponentMixin(twc.Widget):
         super(HidingComponentMixin, self).prepare()
         self.safe_modify('resources')
         self.resources.append(
-            twc.JSFuncCall(function='twd_hiding_init', args=(self.compound_id, self.mapping)).req())
+            twc.JSFuncCall(function='twd_hiding_init', args=(self.compound_id, self.mapping)))
 
 class HidingSingleSelectField(HidingComponentMixin, twf.SingleSelectField):
     __doc__ = HidingComponentMixin.__doc__.replace('$$', 'SingleSelectField')
@@ -191,6 +191,7 @@ class CalendarDatePicker(twf.widgets.InputField):
         twc.CSSLink(modname='tw2.dynforms', filename='static/calendar/calendar-system.css'),
         twc.JSLink(modname='tw2.dynforms', filename='static/calendar/calendar.js'),
         twc.JSLink(modname='tw2.dynforms', filename='static/calendar/calendar-setup.js'),
+        twc.Link(id='cal', modname='tw2.dynforms', filename='static/office-calendar.png'),
     ]
     language = twc.Param('Short country code for language to use, e.g. fr, de', default='en')
     show_time = twc.Variable('Whether to display the time', default=False)
@@ -203,17 +204,14 @@ class CalendarDatePicker(twf.widgets.InputField):
         super(CalendarDatePicker, self).prepare()
         self.safe_modify('resources')
         self.resources.extend([
-            twc.JSLink(modname='tw2.dynforms', filename='static/calendar/lang/calendar-%s.js' % self.language).req(),
+            twc.JSLink(modname='tw2.dynforms', filename='static/calendar/lang/calendar-%s.js' % self.language),
             twc.JSFuncCall(function='Calendar.setup', args=[dict(
                 inputField = self.compound_id,
                 ifFormat = self.validator.format,
                 button = self.compound_id + ':trigger',
                 showsTime = self.show_time
-            )]).req(),
+            )]),
         ])
-        aa = twc.Link(modname='tw2.dynforms', filename='static/office-calendar.png').req()
-        aa.prepare()
-        self.cal_src = aa.link
 
 
 class CalendarDateTimePicker(CalendarDatePicker):
@@ -258,7 +256,7 @@ class CustomisedForm(twf.Form):
             self.attrs['onsubmit'] = 'twd_blank_deleted()'
         if self.disable_enter:
             self.safe_modify('resources')
-            self.resources.append(twc.JSSource(src='document.onkeypress = twd_suppress_enter;').req())
+            self.resources.append(twc.JSSource(src='document.onkeypress = twd_suppress_enter;'))
         if self.prevent_multi_submit:
             self.safe_modify('submit_attrs')
             self.submit_attrs['onclick'] = 'return twd_no_multi_submit(this)'
