@@ -260,19 +260,3 @@ class CustomisedForm(twf.Form):
         if self.prevent_multi_submit:
             self.safe_modify('submit_attrs')
             self.submit_attrs['onclick'] = 'return twd_no_multi_submit(this)'
-
-
-class WriteOnlyTextField(twf.TextField):
-    """A text field that is write-only and never reveals database content. If a value exists in the database, a placeholder like "(supplied)" will be substituted. If the user does not modify the value, the validator will return EmptyField. so a parent CompoundWidget validator does not include it in the dictionary."""
-
-    token = twc.Param('Text that is displayed instead of the data.', default='(supplied)', request_local=False)
-
-    def prepare(self):
-        self.value = self.value and self.token
-        super(WriteOnlyTextField, self).prepare()
-
-    def _validate(self, value):
-        if value == self.token:
-            return twc.EmptyField
-        else:
-            return super(WriteOnlyTextField, self)._validate(value)
