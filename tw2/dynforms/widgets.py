@@ -229,14 +229,13 @@ class LinkContainer(twc.DisplayOnlyWidget):
 
     link = twc.Param('The link target. If a $ character is present in the URL, it is replaced with the current value of the widget.')
     view_text = twc.Param('Text to appear in the link', default='View')
+    id_suffix = 'view'
 
     def prepare(self):
         super(LinkContainer, self).prepare()
         self.child.safe_modify('attrs')
         self.child.attrs['onchange'] = (('twd_link_onchange(this, "%s");' % self.link) +
                                             self.child.attrs.get('onchange', ''))
-        self.safe_modify('attrs')
-        self.attrs['id'] = self.child.compound_id + ':view'
         if not self.child.value:
             self.attrs['style'] = 'display:none;' + self.attrs.get('style', '')
 
