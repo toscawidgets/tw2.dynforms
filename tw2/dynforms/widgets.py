@@ -71,7 +71,7 @@ class GrowingGridLayout(twf.GridLayout):
         hidden_row.attrs['style'] = 'display:none;' + hidden_row.attrs.get('style', '')
 
     def _validate(self, value):
-        super(GrowingGridLayout, self)._validate([None] + StripBlanks().to_python(value))
+        return super(GrowingGridLayout, self)._validate([None] + StripBlanks().to_python(value))
 
 
 #--
