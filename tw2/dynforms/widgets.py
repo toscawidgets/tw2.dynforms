@@ -71,7 +71,7 @@ class GrowingGridLayout(twf.GridLayout):
         hidden_row.attrs['style'] = 'display:none;' + hidden_row.attrs.get('style', '')
 
     def _validate(self, value):
-        return super(GrowingGridLayout, self)._validate([None] + StripBlanks().to_python(value))
+        return super(GrowingGridLayout, self)._validate([None] + StripBlanks().to_python(value))[1:]
 
 
 #--
@@ -257,5 +257,5 @@ class CustomisedForm(twf.Form):
             self.safe_modify('resources')
             self.resources.append(twc.JSSource(src='document.onkeypress = twd_suppress_enter;'))
         if self.prevent_multi_submit:
-            self.safe_modify('submit_attrs')
-            self.submit_attrs['onclick'] = 'return twd_no_multi_submit(this)'
+            self.submit.safe_modify('attrs')
+            self.submit.attrs['onclick'] = 'return twd_no_multi_submit(this);'
