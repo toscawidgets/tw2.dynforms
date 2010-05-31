@@ -11,6 +11,7 @@ class DeleteButton(twf.ImageButton):
     modname = __name__
     filename = 'static/del.png'
     alt = 'Delete row'
+    validator = twc.BlankValidator
 
 
 class StripBlanks(twc.Validator):
