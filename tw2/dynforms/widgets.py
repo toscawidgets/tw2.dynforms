@@ -71,8 +71,8 @@ class GrowingGridLayout(twf.GridLayout):
         hidden_row.safe_modify('attrs')
         hidden_row.attrs['style'] = 'display:none;' + hidden_row.attrs.get('style', '')
 
-    def _validate(self, value):
-        return super(GrowingGridLayout, self)._validate([None] + StripBlanks().to_python(value))[1:]
+    def _validate(self, value, state=None):
+        return super(GrowingGridLayout, self)._validate([None] + StripBlanks().to_python(value), state)[1:]
 
 
 #--
@@ -144,7 +144,7 @@ class HidingContainerMixin(object):
                 c.container_attrs['style'] = 'display:none;' + c.container_attrs.get('style', '')
 
     @twc.validation.catch_errors
-    def _validate(self, value):
+    def _validate(self, value, state=None):
         self._validated = True
         value = value or {}
         if not isinstance(value, dict):
@@ -159,17 +159,17 @@ class HidingContainerMixin(object):
             else:
                 try:
                     if c._sub_compound:
-                        data.update(c._validate(value))
+                        data.update(c._validate(value, data))
                     else:
-                        data[c.id] = c._validate(value.get(c.id))
+                        data[c.id] = c._validate(value.get(c.id), data)
                         if isinstance(c, HidingComponentMixin):
                             show.update(c.mapping.get(data[c.id], []))
                 except twc.ValidationError:
                     data[c.id] = twc.Invalid
                     any_errors = True
         if self.validator:
-            data = self.validator.to_python(data)
-            self.validator.validate_python(data)
+            data = self.validator.to_python(data, state)
+            self.validator.validate_python(data, state)
         if any_errors:
             raise twc.ValidationError('childerror', self.validator)
         return data
