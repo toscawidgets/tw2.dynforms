@@ -138,7 +138,11 @@ class HidingContainerMixin(object):
         show = set()
         for c in self.children:
             if isinstance(c, HidingComponentMixin):
-                show.update(c.mapping.get(c.value, []))
+                if isinstance(c.value, list):
+                    for v in c.value:
+                        show.update(c.mapping.get(v, []))
+                else:
+                    show.update(c.mapping.get(c.value, []))
             if c.id in self.hiding_ctrls and c.id not in show:
                 c.safe_modify('container_attrs')
                 c.container_attrs['style'] = 'display:none;' + c.container_attrs.get('style', '')
