@@ -14,26 +14,6 @@ class DeleteButton(twf.ImageButton):
     validator = twc.BlankValidator
 
 
-class StripBlanks(twc.Validator):
-    def any_content(self, val):
-        if type(val) == list:
-            for v in val:
-                if self.any_content(v):
-                    return True
-            return False
-        elif type(val) == dict:
-            for k in val:
-                if k == 'id':
-                    continue
-                if self.any_content(val[k]):
-                    return True
-            return False
-        else:
-            return bool(val)
-
-    def to_python(self, value):
-        return [v for v in value if self.any_content(v)]
-
 class GrowingGridLayout(twf.GridLayout):
     """A GridLayout that can dynamically grow on the client, with delete and undo functionality. This is useful for allowing users to enter a list of items that can vary in length. To function correctly, the widget must appear inside a CustomisedForm."""
     resources = [
@@ -57,8 +37,6 @@ class GrowingGridLayout(twf.GridLayout):
     def prepare(self):
         if not hasattr(self, '_validated'):
             self.value = [None] + (self.value or [])
-        else:
-            self.value.extend([None] * self.extra_reps)
         super(GrowingGridLayout, self).prepare()
         # First and last rows have delete hidden (and hidingbutton) and get onchange
         for r in (self.children[0], self.children[self.repetitions-1]):
@@ -74,7 +52,7 @@ class GrowingGridLayout(twf.GridLayout):
         hidden_row.attrs['style'] = 'display:none;' + hidden_row.attrs.get('style', '')
 
     def _validate(self, value, state=None):
-        return super(GrowingGridLayout, self)._validate([None] + StripBlanks().to_python(value), state)[1:]
+        return twc.RepeatingWidget._validate(self, [None] + twf.StripBlanks().to_python(value), state)[1:]
 
 
 #--
