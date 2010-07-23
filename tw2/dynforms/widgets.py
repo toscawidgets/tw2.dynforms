@@ -57,6 +57,8 @@ class GrowingGridLayout(twf.GridLayout):
     def prepare(self):
         if not hasattr(self, '_validated'):
             self.value = [None] + (self.value or [])
+        else:
+            self.value.extend([None] * self.extra_reps)
         super(GrowingGridLayout, self).prepare()
         # First and last rows have delete hidden (and hidingbutton) and get onchange
         for r in (self.children[0], self.children[self.repetitions-1]):
