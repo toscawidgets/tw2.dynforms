@@ -5,7 +5,7 @@ powerful functionality with ease.
 """
 
 from widgets import (
-    CustomisedForm, LinkContainer, GrowingGridLayout,
+    CustomisedForm, CustomisedTableForm, LinkContainer, GrowingGridLayout,
     HidingTableLayout, HidingListLayout,
     HidingSingleSelectField, HidingCheckBox, HidingCheckBoxList,
     HidingRadioButtonList, CalendarDatePicker, CalendarDateTimePicker)

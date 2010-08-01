@@ -244,3 +244,7 @@ class CustomisedForm(twf.Form):
         if self.prevent_multi_submit:
             self.submit.safe_modify('attrs')
             self.submit.attrs['onclick'] = 'return twd_no_multi_submit(this);'
+
+
+class CustomisedTableForm(CustomisedForm, twf.TableForm):
+    pass
