@@ -2,3 +2,5 @@ glob:docs/.output
 glob:tw2.dynforms.egg-info
 glob:*.pyc
 glob:Thumbs.db
+glob:build/*
+glob:dist/*

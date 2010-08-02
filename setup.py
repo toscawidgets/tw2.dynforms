@@ -2,15 +2,15 @@ from setuptools import setup, find_packages
 
 setup(
     name='tw2.dynforms',
-    version='2.0.0-alpha1',
-    description='',
-    author='',
-    author_email='',
-    url='',
+    version='2.0a1',
+    description="Dynamic widgets with JavaScript for ToscaWidgets 2",
+    long_description = open('README.txt').read().split('\n\n', 1)[1],
+    author='Paul Johnston & Contributors',
+    author_email='paj@pajhome.org.uk',
+    url = "http://toscawidgets.org/documentation/tw2.core/",
     install_requires=[
-        "tw2.core",
-        ## Add other requirements here
-        # "Genshi",
+        "tw2.forms>=2.0b4",
+        "Genshi",
         ],
     packages=find_packages(exclude=['ez_setup', 'tests']),
     namespace_packages = ['tw2'],
