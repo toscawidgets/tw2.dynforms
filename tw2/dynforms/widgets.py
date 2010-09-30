@@ -52,6 +52,7 @@ class GrowingGridLayout(twf.GridLayout):
         hidden_row.attrs['style'] = 'display:none;' + hidden_row.attrs.get('style', '')
 
     def _validate(self, value, state=None):
+        value = [v for v in value if not ('del.x' in v and 'del.y' in v)]
         return twc.RepeatingWidget._validate(self, [None] + twf.StripBlanks().to_python(value), state)[1:]
 
 
