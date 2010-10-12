@@ -9,7 +9,7 @@ setup(
     author_email='paj@pajhome.org.uk',
     url = "http://toscawidgets.org/documentation/tw2.core/",
     install_requires=[
-        "tw2.forms>=2.0b4",
+        "tw2.forms>=2.0b5",
         "Genshi",
         ],
     packages=find_packages(exclude=['ez_setup', 'tests']),
