@@ -1,5 +1,8 @@
 from setuptools import setup, find_packages
 
+# Hack to get tests to work on py2.7
+import multiprocessing, logging
+
 setup(
     name='tw2.dynforms',
     version='2.0a3',
@@ -17,6 +20,13 @@ setup(
     zip_safe=False,
     include_package_data=True,
     test_suite = 'nose.collector',
+    tests_require = [
+        'nose',
+        'formencode',
+        'BeautifulSoup',
+        'strainer',
+        'WebTest',
+    ],
     entry_points="""
         [tw2.widgets]
         # Register your widgets so they can be listed in the WidgetBrowser

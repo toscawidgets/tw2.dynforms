@@ -1,16 +1,4 @@
-from tw.core.testutil import WidgetTestCase
-from tw.tw2dynforms import *
+from tw2.core.testbase import WidgetTest
+from tw2.dynforms import *
 
-class TestWidget(WidgetTestCase):
-    # place your widget at the TestWidget attribute
-    TestWidget = Tw2dynforms
-    # Initilization args. go here 
-    widget_kw = {}
-
-    def test_render(self):
-        # Asserts 'foo' and 'test' (the test widget's id) appear in rendered 
-        # string when 'foo' is passed as value to render
-        self.assertInOutput(['foo', 'test'], "foo")
-        # Asserts 'ohlalala' does not appear in rendered string when render 
-        # is called without args
-        self.assertNotInOutput(['ohlalala'])
+# TODO -- write tests using WidgetTest
