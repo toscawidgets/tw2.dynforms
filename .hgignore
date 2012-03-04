@@ -4,3 +4,4 @@ glob:*.pyc
 glob:Thumbs.db
 glob:build/*
 glob:dist/*
+glob:*.egg*

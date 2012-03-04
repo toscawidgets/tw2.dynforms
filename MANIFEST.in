@@ -1,2 +1,2 @@
-recursive-include tw/tw2dynforms/templates *
-recursive-include tw/tw2dynforms/static *
+recursive-include tw2/dynforms/templates *
+recursive-include tw2/dynforms/static *

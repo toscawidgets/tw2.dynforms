@@ -181,13 +181,24 @@ class CalendarDatePicker(twf.widgets.InputField):
     ]
     language = twc.Param('Short country code for language to use, e.g. fr, de', default='en')
     show_time = twc.Variable('Whether to display the time', default=False)
-    value = twc.Param('The default value is the current date/time', default=twc.Deferred(lambda: dt.datetime.now()))
+    value = twc.Param('The default value is the current date/time', default=None)
     validator = twc.DateValidator
     template = "genshi:tw2.dynforms.templates.calendar"
     type = 'text'
 
     def prepare(self):
+
+        if not self.value:
+            # XXX -- Doing this instead of twc.Deferred consciously.
+            # twc.Deferred is/was nice, but the execution in post_define(...) of
+            #   cls._deferred = [k for k, v in cls.__dict__.iteritems()
+            #                    if isinstance(v, pm.Deferred)]
+            # with dir(..) instead of vars(..) is too costly.  This is the only
+            # place I'm aware of that actually uses deferred params. - threebean
+            self.value = dt.datetime.now()
+
         super(CalendarDatePicker, self).prepare()
+
         self.safe_modify('resources')
         self.resources.extend([
             twc.JSLink(parent=self.__class__, modname='tw2.dynforms', filename='static/calendar/lang/calendar-%s.js' % self.language),
