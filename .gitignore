@@ -1,0 +1,7 @@
+docs/.output
+tw2.dynforms.egg-info
+*.pyc
+Thumbs.db
+build/*
+dist/*
+*.egg*
