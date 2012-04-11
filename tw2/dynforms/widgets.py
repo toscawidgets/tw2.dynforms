@@ -68,8 +68,8 @@ class HidingComponentMixin(twc.Widget):
     def prepare(self):
         super(HidingComponentMixin, self).prepare()
         self.safe_modify('resources')
-        self.resources.append(
-            twc.JSFuncCall(parent=self.__class__, function='twd_hiding_init', args=(self.compound_id, self.mapping)))
+        self.add_call(twc.js_function('twd_hiding_init')(
+            self.compound_id, self.mapping))
 
 class HidingSingleSelectField(HidingComponentMixin, twf.SingleSelectField):
     __doc__ = HidingComponentMixin.__doc__.replace('$$', 'SingleSelectField')
@@ -202,13 +202,13 @@ class CalendarDatePicker(twf.widgets.InputField):
         self.safe_modify('resources')
         self.resources.extend([
             twc.JSLink(parent=self.__class__, modname='tw2.dynforms', filename='static/calendar/lang/calendar-%s.js' % self.language),
-            twc.JSFuncCall(parent=self.__class__, function='Calendar.setup', args=[dict(
-                inputField = self.compound_id,
-                ifFormat = self.validator.format,
-                button = self.compound_id + ':trigger',
-                showsTime = self.show_time
-            )]),
         ])
+        self.add_call(twc.js_function('Calendar.setup')(dict(
+            inputField = self.compound_id,
+            ifFormat = self.validator.format,
+            button = self.compound_id + ':trigger',
+            showsTime = self.show_time
+        )))
 
 
 class CalendarDateTimePicker(CalendarDatePicker):

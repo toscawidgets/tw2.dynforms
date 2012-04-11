@@ -1,21 +1,25 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 # Hack to get tests to work on py2.7
-import multiprocessing, logging
+try:
+    import multiprocessing, logging
+except Exception:
+    pass
 
 setup(
     name='tw2.dynforms',
-    version='2.0a3',
+    version='2.0.0',
     description="Dynamic widgets with JavaScript for ToscaWidgets 2",
-    long_description = open('README.txt').read().split('\n\n', 1)[1],
+    long_description = open('README.rst').read().split('\n\n', 1)[1],
     author='Paul Johnston & Contributors',
     author_email='paj@pajhome.org.uk',
     url = "http://toscawidgets.org/documentation/tw2.core/",
     install_requires=[
+        "tw2.core>=2.0.0",
         "tw2.forms>=2.0b4",
         "Genshi",
         ],
-    packages=find_packages(exclude=['ez_setup', 'tests']),
+    packages=['tw2', 'tw2.dynforms',],
     namespace_packages = ['tw2'],
     zip_safe=False,
     include_package_data=True,
@@ -36,7 +40,7 @@ setup(
         'toscawidgets.widgets',
     ],
     classifiers = [
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'Environment :: Web Environment :: ToscaWidgets',
         'Topic :: Software Development :: Libraries :: Python Modules',
