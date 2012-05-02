@@ -3,8 +3,8 @@
 %global modname tw2.dynforms
 
 Name:           python-tw2-dynforms
-Version:        2.0.0
-Release:        2%{?dist}
+Version:        2.0.1
+Release:        1%{?dist}
 Summary:        Dynamic forms for ToscaWidgets2
 
 Group:          Development/Languages
@@ -64,10 +64,13 @@ rm setup.cfg
 PYTHONPATH=$(pwd) python setup.py test
 
 %files
-%doc README.rst
+%doc README.rst LICENSE
 %{python_sitelib}/*
 
 %changelog
+* Wed May 02 2012 Ralph Bean <rbean@redhat.com> - 2.0.1
+- New upstream release.  Contains license file.
+
 * Wed May 02 2012 Ralph Bean <rbean@redhat.com> - 2.0.0-2
 - Removed clean section
 - Removed defattr in files section
