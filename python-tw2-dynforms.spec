@@ -4,7 +4,7 @@
 
 Name:           python-tw2-dynforms
 Version:        2.0.1
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Dynamic forms for ToscaWidgets2
 
 Group:          Development/Languages
@@ -65,10 +65,15 @@ PYTHONPATH=$(pwd) python setup.py test
 
 %files
 %doc README.rst LICENSE
-%{python_sitelib}/*
+%{python_sitelib}/tw2/dynforms
+%{python_sitelib}/%{modname}-%{version}-*.egg
 
 %changelog
-* Wed May 02 2012 Ralph Bean <rbean@redhat.com> - 2.0.1
+* Thu May 03 2012 Ralph Bean <rbean@redhat.com> - 2.0.1-2
+- Fixed incoherent-version-in-changelog.
+- Fixed directory ownership issue.
+
+* Wed May 02 2012 Ralph Bean <rbean@redhat.com> - 2.0.1-1
 - New upstream release.  Contains license file.
 
 * Wed May 02 2012 Ralph Bean <rbean@redhat.com> - 2.0.0-2
