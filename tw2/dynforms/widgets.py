@@ -146,7 +146,9 @@ class HidingContainerMixin(object):
                     if c._sub_compound:
                         data.update(c._validate(value, data))
                     else:
-                        data[c.id] = c._validate(value.get(c.id), data)
+                        val = c._validate(value.get(c.id), data)
+                        if val is not twc.EmptyField:
+                            data[c.id] = val
                         if isinstance(c, HidingComponentMixin):
                             show.update(c.mapping.get(data[c.id], []))
                 except twc.ValidationError:
