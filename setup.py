@@ -9,11 +9,12 @@ except Exception:
 setup(
     name='tw2.dynforms',
     version='2.0.1',
-    description="Dynamic widgets with JavaScript for ToscaWidgets 2",
+    description='Dynamic form widgets for ToscaWidgets 2, a web widget toolkit.',
     long_description = open('README.rst').read().split('\n\n', 1)[1],
-    author='Paul Johnston & Contributors',
-    author_email='paj@pajhome.org.uk',
-    url = "http://toscawidgets.org/documentation/tw2.core/",
+    author='Paul Johnston & contributors',
+    author_email='toscawidgets-discuss@googlegroups.com',
+    url = "http://toscawidgets.org/",
+    download_url = "https://pypi.python.org/pypi/tw2.dynforms/",
     license="MIT",
     install_requires=[
         "tw2.core>=2.0.0",
