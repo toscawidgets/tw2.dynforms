@@ -13,8 +13,8 @@ setup(
     long_description = open('README.rst').read().split('\n\n', 1)[1],
     author='Paul Johnston & contributors',
     author_email='toscawidgets-discuss@googlegroups.com',
-    url = "http://toscawidgets.org/",
-    download_url = "https://pypi.python.org/pypi/tw2.dynforms/",
+    url="http://toscawidgets.org/",
+    download_url="https://pypi.python.org/pypi/tw2.dynforms/",
     license="MIT",
     install_requires=[
         "tw2.core>=2.0.0",
