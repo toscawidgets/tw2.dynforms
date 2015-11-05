@@ -4,7 +4,7 @@ use a combination of client and server logic to allow developers to utilise
 powerful functionality with ease.
 """
 
-from widgets import (
+from .widgets import (
     CustomisedForm, CustomisedTableForm, LinkContainer, GrowingGridLayout,
     HidingTableLayout, HidingListLayout,
     HidingSingleSelectField, HidingCheckBox, HidingCheckBoxList,
