@@ -147,7 +147,7 @@ class HidingContainerMixin(object):
         self._validated = True
         value = value or {}
         if not isinstance(value, dict):
-            raise vd.ValidationError('corrupt', self.validator)
+            raise twc.ValidationError('corrupt', self.validator)
         self.value = value
         any_errors = False
         data = {}
