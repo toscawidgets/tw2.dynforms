@@ -79,6 +79,20 @@ class HidingCheckBox(HidingComponentMixin, twf.CheckBox):
     __doc__ = HidingComponentMixin.__doc__.replace('$$', 'CheckBox')
     attrs = {'onclick': 'twd_hiding_onchange(this)'}
 
+    @classmethod
+    def post_define(cls):
+        if not hasattr(cls, 'mapping'):
+            return
+        # extend the mapping for the usual suspects of keys (truth values)
+        falsevals = (False, 0, 'false')
+        truevals = (True, 1, 'true')
+        for f in falsevals:
+            if f in cls.mapping:
+                [cls.mapping.setdefault(k, cls.mapping[f]) for k in falsevals]
+        for t in truevals:
+            if t in cls.mapping:
+                [cls.mapping.setdefault(k, cls.mapping(t)) for k in truevals]
+
 class HidingSelectionList(HidingComponentMixin, twf.widgets.SelectionList):
     def prepare(self):
         super(HidingSelectionList, self).prepare()
@@ -133,7 +147,7 @@ class HidingContainerMixin(object):
         self._validated = True
         value = value or {}
         if not isinstance(value, dict):
-            raise vd.ValidationError('corrupt', self.validator)
+            raise twc.ValidationError('corrupt', self.validator)
         self.value = value
         any_errors = False
         data = {}
