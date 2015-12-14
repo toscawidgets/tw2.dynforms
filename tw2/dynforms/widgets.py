@@ -79,6 +79,35 @@ class HidingCheckBox(HidingComponentMixin, twf.CheckBox):
     __doc__ = HidingComponentMixin.__doc__.replace('$$', 'CheckBox')
     attrs = {'onclick': 'twd_hiding_onchange(this)'}
 
+    _falsevals = (0, False, 'false')
+    _truevals = (1, True, 'true')
+    _truthvals = _falsevals + _truevals
+
+    @classmethod
+    def normalize_bool(cls, value):
+        if value in cls._truevals:
+            return cls._truevals[0]
+        elif value in cls._falsevals:
+            return cls._falsevals[0]
+        else:
+            raise ValueError("Can't normalize {!r} to boolean".format(value))
+
+    @classmethod
+    def post_define(cls):
+        if not hasattr(cls, 'mapping'):
+            return
+        new_mapping = {}
+        for k, v in cls.mapping.items():
+            if k not in cls._truthvals:
+                new_k = k
+            else:
+                new_k = cls.normalize_bool(k)
+                if new_k in new_mapping:
+                    raise twc.ParameterError(
+                            "duplicate normalized mapping key: {}".format(k))
+            new_mapping[new_k] = v
+        cls.mapping = new_mapping
+
 class HidingSelectionList(HidingComponentMixin, twf.widgets.SelectionList):
     def prepare(self):
         super(HidingSelectionList, self).prepare()
@@ -119,7 +148,9 @@ class HidingContainerMixin(object):
         show = set()
         for c in self.children:
             if isinstance(c, HidingComponentMixin):
-                if isinstance(c.value, list):
+                if isinstance(c, HidingCheckBox):
+                    show.update(c.mapping.get(c.normalize_bool(c.value), []))
+                elif isinstance(c.value, list):
                     for v in c.value:
                         show.update(c.mapping.get(v, []))
                 else:
