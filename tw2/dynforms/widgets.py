@@ -168,6 +168,8 @@ class HidingContainerMixin(object):
         self.value = value
         any_errors = False
         data = {}
+        state = twc.util.clone_object(
+                state, full_dict=value, validated_values=data)
         show = set()
         for c in self.children:
             if c.id in self.hiding_ctrls and c.id not in show:
@@ -175,9 +177,9 @@ class HidingContainerMixin(object):
             else:
                 try:
                     if c._sub_compound:
-                        data.update(c._validate(value, data))
+                        data.update(c._validate(value, state))
                     else:
-                        val = c._validate(value.get(c.id), data)
+                        val = c._validate(value.get(c.id), state)
                         if val is not twc.EmptyField:
                             data[c.id] = val
                         if isinstance(c, HidingComponentMixin):
