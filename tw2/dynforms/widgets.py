@@ -159,6 +159,18 @@ class HidingContainerMixin(object):
                 c.safe_modify('container_attrs')
                 c.container_attrs['style'] = 'display:none;' + c.container_attrs.get('style', '')
 
+                # Hide required attribute on children where applicable
+                children = [c]
+                while children:
+                    new_children = []
+                    for cc in children:
+                        new_children.extend(getattr(cc, 'children', []))
+                        if cc.attrs.get('required', None):
+                            cc.safe_modify('attrs')
+                            del cc.attrs['required']
+                            cc.attrs['_twd_hidden_required'] = 'required'
+                    children = new_children
+
     @twc.validation.catch_errors
     def _validate(self, value, state=None):
         self._validated = True
