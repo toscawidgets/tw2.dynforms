@@ -31,6 +31,8 @@ class GrowingGridLayout(twf.GridLayout):
     @classmethod
     def post_define(cls):
         if hasattr(cls.child, 'children'):
+            # don't let the hidden template child cause validation to fail
+            cls.child.children[0].validator = None
             if not hasattr(cls.child.children, 'del'): # TBD: 'del' in ...
                 cls.child = cls.child(children = list(cls.child.children) + [DeleteButton(id='del', label='')])
 
@@ -79,6 +81,35 @@ class HidingCheckBox(HidingComponentMixin, twf.CheckBox):
     __doc__ = HidingComponentMixin.__doc__.replace('$$', 'CheckBox')
     attrs = {'onclick': 'twd_hiding_onchange(this)'}
 
+    _falsevals = (0, False, 'false')
+    _truevals = (1, True, 'true')
+    _truthvals = _falsevals + _truevals
+
+    @classmethod
+    def normalize_bool(cls, value):
+        if value in cls._truevals:
+            return cls._truevals[0]
+        elif value in cls._falsevals:
+            return cls._falsevals[0]
+        else:
+            raise ValueError("Can't normalize {!r} to boolean".format(value))
+
+    @classmethod
+    def post_define(cls):
+        if not hasattr(cls, 'mapping'):
+            return
+        new_mapping = {}
+        for k, v in cls.mapping.items():
+            if k not in cls._truthvals:
+                new_k = k
+            else:
+                new_k = cls.normalize_bool(k)
+                if new_k in new_mapping:
+                    raise twc.ParameterError(
+                            "duplicate normalized mapping key: {}".format(k))
+            new_mapping[new_k] = v
+        cls.mapping = new_mapping
+
 class HidingSelectionList(HidingComponentMixin, twf.widgets.SelectionList):
     def prepare(self):
         super(HidingSelectionList, self).prepare()
@@ -119,7 +150,9 @@ class HidingContainerMixin(object):
         show = set()
         for c in self.children:
             if isinstance(c, HidingComponentMixin):
-                if isinstance(c.value, list):
+                if isinstance(c, HidingCheckBox):
+                    show.update(c.mapping.get(c.normalize_bool(c.value), []))
+                elif isinstance(c.value, list):
                     for v in c.value:
                         show.update(c.mapping.get(v, []))
                 else:
@@ -128,15 +161,29 @@ class HidingContainerMixin(object):
                 c.safe_modify('container_attrs')
                 c.container_attrs['style'] = 'display:none;' + c.container_attrs.get('style', '')
 
+                # Hide required attribute on children where applicable
+                children = [c]
+                while children:
+                    new_children = []
+                    for cc in children:
+                        new_children.extend(getattr(cc, 'children', []))
+                        if cc.attrs.get('required', None):
+                            cc.safe_modify('attrs')
+                            del cc.attrs['required']
+                            cc.attrs['_twd_hidden_required'] = 'required'
+                    children = new_children
+
     @twc.validation.catch_errors
     def _validate(self, value, state=None):
         self._validated = True
         value = value or {}
         if not isinstance(value, dict):
-            raise vd.ValidationError('corrupt', self.validator)
+            raise twc.ValidationError('corrupt', self.validator)
         self.value = value
         any_errors = False
         data = {}
+        state = twc.util.clone_object(
+                state, full_dict=value, validated_values=data)
         show = set()
         for c in self.children:
             if c.id in self.hiding_ctrls and c.id not in show:
@@ -144,9 +191,9 @@ class HidingContainerMixin(object):
             else:
                 try:
                     if c._sub_compound:
-                        data.update(c._validate(value, data))
+                        data.update(c._validate(value, state))
                     else:
-                        val = c._validate(value.get(c.id), data)
+                        val = c._validate(value.get(c.id), state)
                         if val is not twc.EmptyField:
                             data[c.id] = val
                         if isinstance(c, HidingComponentMixin):

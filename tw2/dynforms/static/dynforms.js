@@ -45,11 +45,27 @@ function twd_hiding_onchange(ctrl)
     for(a in mapping)
         for(b in mapping[a])
         {
-            var display = visible[mapping[a][b]] ? '' : 'none';
+            var is_visible = visible[mapping[a][b]]
+            var display = is_visible ? '' : 'none';
+            var req_from = is_visible ? '_twd_hidden_required' : 'required';
+            var req_to = is_visible ? 'required' : '_twd_hidden_required';
             var x = document.getElementById(parent_id+mapping[a][b]+':container');
             if(x.style.display != display)
             {
                 x.style.display = display;
+
+                // Set/hide required attribute on children where applicable
+                var children = x.getElementsByTagName('*');
+                for(var i = 0; i < children.length; i++)
+                {
+                    c = children[i];
+                    if(c.hasAttribute(req_from))
+                    {
+                        c.setAttribute(req_to, c.getAttribute(req_from));
+                        c.removeAttribute(req_from);
+                    }
+                }
+
                 var x = document.getElementById(parent_id+mapping[a][b]);
                 if(x && x.id && twd_mapping_store[x.id])
                     twd_hiding_onchange(x);
