@@ -30,7 +30,9 @@ class GrowingGridLayout(twf.GridLayout):
 
     @classmethod
     def post_define(cls):
-        if hasattr(cls.child, 'children'):
+        if hasattr(cls.child, 'children') and len(cls.child.children):
+            # don't let the hidden template child cause validation to fail
+            cls.child.children[0].validator = None
             if not hasattr(cls.child.children, 'del'): # TBD: 'del' in ...
                 cls.child = cls.child(children = list(cls.child.children) + [DeleteButton(id='del', label='')])
 
