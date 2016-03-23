@@ -32,6 +32,7 @@ setup(
         'BeautifulSoup',
         'strainer',
         'WebTest',
+        'sieve'
     ],
     entry_points="""
         [tw2.widgets]
