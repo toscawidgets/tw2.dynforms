@@ -69,7 +69,7 @@ class HidingComponentMixin(twc.Widget):
         super(HidingComponentMixin, self).prepare()
         self.safe_modify('resources')
         self.add_call(twc.js_function('twd_hiding_init')(
-            self.compound_id, self.mapping))
+            self.compound_id, self.mapping, self.value))
 
 class HidingSingleSelectField(HidingComponentMixin, twf.SingleSelectField):
     __doc__ = HidingComponentMixin.__doc__.replace('$$', 'SingleSelectField')
