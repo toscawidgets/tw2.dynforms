@@ -1,4 +1,8 @@
-import tw2.core as twc, tw2.forms as twf, datetime as dt
+import datetime as dt
+
+import tw2.core as twc
+import tw2.forms as twf
+
 
 #--
 # Growing
@@ -133,12 +137,15 @@ class HidingContainerMixin(object):
         self._validated = True
         value = value or {}
         if not isinstance(value, dict):
-            raise vd.ValidationError('corrupt', self.validator)
+            raise twc.ValidationError('corrupt', self.validator)
         self.value = value
         any_errors = False
         data = {}
         show = set()
         for c in self.children:
+            if hasattr(c, 'validator') and isinstance(c.validator, twc.BlankValidator):
+                # FIXME: This is a workaround to not add value from LabelField to validated data.
+                continue
             if c.id in self.hiding_ctrls and c.id not in show:
                 data[c.id] = None
             else:
@@ -150,8 +157,8 @@ class HidingContainerMixin(object):
                         if val is not twc.EmptyField:
                             data[c.id] = val
                         if isinstance(c, HidingComponentMixin):
-			    #Support Multiselect List widgets
-			    #Show widgets based on pre-validated value
+                            # Support Multiselect List widgets
+                            # Show widgets based on pre-validated value
                             if isinstance(data[c.id],list):
                                 for item in data[c.id]:
                                     show.update(c.mapping.get(item,[]))
